@@ -194,9 +194,8 @@
             const playerUI = document.createElement('div');
             playerUI.id = 'musicPlayer';
             playerUI.innerHTML = `
-                <span style="color: #00f3ff; font-size: 10px; margin-right: 8px;">♫</span>
                 <button id="prevTrack" style="background: transparent; border: 1px solid #00f3ff; color: #00f3ff; padding: 2px 6px; cursor: pointer; font-size: 10px;">◀</button>
-                <button id="togglePlay" style="background: transparent; border: 1px solid #ff007f; color: #ff007f; padding: 2px 8px; cursor: pointer; font-size: 10px;">❚❚</button>
+                <span id="trackNumber" style="color: #00f3ff; font-size: 10px; margin: 0 8px;">1</span>
                 <button id="nextTrack" style="background: transparent; border: 1px solid #00f3ff; color: #00f3ff; padding: 2px 6px; cursor: pointer; font-size: 10px;">▶</button>
             `;
             playerUI.style.cssText = 'position: fixed; top: 10px; left: 10px; z-index: 1000; display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.7); padding: 5px 10px; border: 2px solid #ff007f; border-radius: 5px;';
@@ -204,7 +203,6 @@
             
             document.getElementById('prevTrack').addEventListener('click', playPrevTrack);
             document.getElementById('nextTrack').addEventListener('click', playNextTrack);
-            document.getElementById('togglePlay').addEventListener('click', togglePlayPause);
         }
 
         function playTrack(index) {
@@ -225,7 +223,7 @@
             
             backgroundMusic.addEventListener('play', function() {
                 console.log('Audio started playing');
-                document.getElementById('togglePlay').textContent = '❚❚';
+                document.getElementById('trackNumber').textContent = currentTrackIndex + 1;
             });
             
             backgroundMusic.play().catch(e => console.log('Play blocked:', e.message));
@@ -239,16 +237,6 @@
             playTrack(currentTrackIndex - 1);
         }
 
-        function togglePlayPause() {
-            if (backgroundMusic) {
-                if (backgroundMusic.paused) {
-                    backgroundMusic.play();
-                } else {
-                    backgroundMusic.pause();
-                }
-            }
-        }
-
         function initMusic() {
             createMusicPlayerUI();
             // Start with random track
@@ -260,10 +248,17 @@
             playTrack(Math.floor(Math.random() * musicFiles.length));
         }
 
-        // Initialize music on page load
-        window.addEventListener('load', initMusic);
+        // Initialize music UI on page load (but music plays on INSERT COIN click)
+        window.addEventListener('load', createMusicPlayerUI);
 
         function startGame() {
+            // Start music when game starts (user interaction enables autoplay)
+            if (!backgroundMusic) {
+                initMusic();
+            } else {
+                backgroundMusic.play().catch(e => console.log('Play failed:', e));
+            }
+            
             state = 'PLAYING'; score = 0; speedMultiplier = 1; throttle = 1; distance = 0; parallaxX = 0; speedWarningShown = false;
             player.roadOffset = 0; player.speedX = 0; player.yOffset = 0; player.curve = 0;
             entities =[]; particles =[]; fallTimer = 0;
