@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background-color: #010006;
+            font-family: 'Press Start 2P', monospace;
+            user-select: none;
+        }
+
+        /* CRT Filter Overlays */
+        .crt::before {
+            content: " "; display: block; position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 10; background-size: 100% 4px, 6px 100%; pointer-events: none;
+        }
+        .crt::after {
+            content: " "; display: block; position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.6) 100%);
+            z-index: 11; pointer-events: none;
+        }
+
+        /* Rolling VHS Tracking Line */
+        .vhs-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 8px;
+            background: rgba(255,255,255,0.05);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1), 0 0 20px rgba(0, 243, 255, 0.1);
+            animation: scan 6s linear infinite;
+            z-index: 12; pointer-events: none; mix-blend-mode: overlay;
+        }
+        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
+
+        /* UI Overlays */
+        #ui {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 20; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            pointer-events: none;
+        }
+        
+        #hud {
+            position: absolute; top: 20px; left: 20px; right: 20px;
+            display: flex; justify-content: space-between;
+            color: #00f3ff; text-shadow: 2px 2px 0 #ff007f, 0 0 10px #00f3ff;
+            font-size: 1.5rem; opacity: 0; transition: opacity 0.5s; pointer-events: none;
+        }
+
+        .screen {
+            background: rgba(5, 0, 20, 0.85); border: 4px solid #ff007f;
+            padding: 40px; box-shadow: 0 0 30px #ff007f, inset 0 0 20px #ff007f;
+            pointer-events: auto; backdrop-filter: blur(5px);
+        }
+
+        h1 { color: #ff007f; text-shadow: 3px 3px 0 #00f3ff, 0 0 20px #ff007f; margin-bottom: 10px; font-size: 2.5rem; }
+        p { color: #fff; line-height: 1.8; margin-bottom: 30px; font-size: 0.9rem;}
+        span.highlight { color: #ffcf00; text-shadow: 0 0 10px #ffcf00; }
+        span.danger { color: #ff0000; text-shadow: 0 0 10px #ff0000; }
+        span.cyan { color: #00f3ff; text-shadow: 0 0 10px #00f3ff; }
+
+        button {
+            background: transparent; border: 2px solid #00f3ff;
+            color: #00f3ff; font-family: inherit; font-size: 1.5rem;
+            padding: 20px 40px; cursor: pointer; text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.5), inset 0 0 15px rgba(0, 243, 255, 0.5);
+            transition: all 0.2s; pointer-events: auto;
+        }
+        button:hover { background: #00f3ff; color: #050014; box-shadow: 0 0 30px #00f3ff; transform: scale(1.05); }
+
+        canvas { display: block; width: 100%; height: 100%; }
+        
+        @keyframes jitter {
+            0% { transform: translateX(0); }
+            10% { transform: translateX(-5px); }
+            20% { transform: translateX(5px); }
+            30% { transform: translateX(0); }
+        }
+        .hit-effect { animation: jitter 0.2s infinite; filter: hue-rotate(90deg) contrast(1.5); }
+
+        /* ====== COMIC BOOK HUD (SANDRA) ====== */
+        #commentator {
+            position: absolute; top: 20px; right: 20px;
+            display: flex; align-items: flex-start; justify-content: flex-end;
+            pointer-events: none; z-index: 25;
+            opacity: 0; transition: opacity 0.2s, transform 0.2s;
+            transform: translateX(50px);
+        }
+        #commentator.show { opacity: 1; transform: translateX(0); }
+        
+        .bubble {
+            background: #ffffff; color: #050014;
+            border: 4px solid #00f3ff; border-radius: 15px;
+            padding: 15px; font-size: 0.75rem; line-height: 1.4;
+            max-width: 220px; text-transform: uppercase;
+            box-shadow: 6px 6px 0px #ff00ff; font-weight: bold;
+            position: relative; margin-right: 20px; margin-top: 10px;
+        }
+        .bubble::after {
+            content: ''; position: absolute; right: -15px; top: 20px;
+            border-width: 10px 0 10px 15px; border-style: solid;
+            border-color: transparent transparent transparent #ffffff; z-index: 2;
+        }
+        .bubble::before {
+            content: ''; position: absolute; right: -21px; top: 18px;
+            border-width: 12px 0 12px 18px; border-style: solid;
+            border-color: transparent transparent transparent #00f3ff; z-index: 1;
+        }
+        .portrait {
+            width: 100px; height: 100px; background: #050014;
+            border: 4px solid #ff00ff; border-radius: 8px;
+            box-shadow: 0 0 20px #ff00ff; overflow: hidden; position: relative;
+        }
+        .portrait::before {
+            content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 0, 255, 0.4), transparent);
+            animation: shine 4s infinite linear;
+        }
+        @keyframes shine { 100% { left: 200%; } }

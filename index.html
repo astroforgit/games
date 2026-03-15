@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Drive: Midnight City</title>
+    <link rel="stylesheet" href="./src/style.css">
+</head>
+<body class="crt">
+    
+    <div class="vhs-line"></div>
+
+    <!-- Sandra-inspired 80s Pop Singer Character -->
+    <div id="commentator">
+        <div class="bubble" id="comic-text">In the heat of the night, let's ride!</div>
+        <div class="portrait">
+            <!-- Stylized Retro Wave Sandra SVG -->
+            <svg viewBox="0 0 100 100" width="100%" height="100%">
+                <defs>
+                    <linearGradient id="sunGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#ffcf00"/>
+                        <stop offset="50%" stop-color="#ff007f"/>
+                        <stop offset="100%" stop-color="#050014"/>
+                    </linearGradient>
+                </defs>
+                
+                <!-- Background Grid & Sun -->
+                <path d="M0 80 L100 80 M0 90 L100 90 M20 100 L50 80 L80 100 M0 100 L50 80 L100 100" stroke="#00f3ff" stroke-width="1" opacity="0.3" fill="none"/>
+                <circle cx="50" cy="55" r="40" fill="url(#sunGrad)" opacity="0.9"/>
+                
+                <!-- Huge 80s Permed Hair (Back Volume) -->
+                <path d="M 15 90 C -10 30, 10 -10, 50 5 C 90 -10, 110 30, 85 90 Z" fill="#1a002a"/>
+                
+                <!-- Neck and Collar -->
+                <path d="M 35 100 C 38 75, 62 75, 65 100 Z" fill="#ffeac0"/>
+                <path d="M 15 100 L 35 88 L 35 100 Z" fill="#111"/>
+                <path d="M 85 100 L 65 88 L 65 100 Z" fill="#111"/>
+                <path d="M 15 100 L 35 88" stroke="#00f3ff" stroke-width="2"/>
+                <path d="M 85 100 L 65 88" stroke="#00f3ff" stroke-width="2"/>
+
+                <!-- Face & Elegant Jawline -->
+                <path d="M 30 35 Q 26 65 50 85 Q 74 65 70 35 Z" fill="#ffeac0"/>
+                
+                <!-- Distinct High Cheekbone Shading -->
+                <path d="M 70 45 C 60 55, 57 70, 50 85 C 64 70, 72 55, 70 45 Z" fill="#ffbba0" opacity="0.7"/>
+                <path d="M 30 45 C 40 55, 43 70, 50 85 C 36 70, 28 55, 30 45 Z" fill="#ffbba0" opacity="0.7"/>
+                
+                <!-- Sultry 80s Eyes -->
+                <path d="M 33 48 Q 40 44 45 48 Q 40 51 33 48 Z" fill="#fff" stroke="#000" stroke-width="1.5"/>
+                <circle cx="40" cy="47.5" r="2" fill="#00f3ff"/>
+                
+                <path d="M 67 48 Q 60 44 55 48 Q 60 51 67 48 Z" fill="#fff" stroke="#000" stroke-width="1.5"/>
+                <circle cx="60" cy="47.5" r="2" fill="#00f3ff"/>
+                
+                <!-- Bright 80s Eyeshadow -->
+                <path d="M 31 46 Q 39 39 47 46" stroke="#ff00ff" stroke-width="2.5" fill="none"/>
+                <path d="M 69 46 Q 61 39 53 46" stroke="#00f3ff" stroke-width="2.5" fill="none"/>
+                
+                <!-- Thick 80s Eyebrows -->
+                <path d="M 30 41 Q 39 36 46 41" stroke="#220011" stroke-width="2.5" fill="none"/>
+                <path d="M 70 41 Q 61 36 54 41" stroke="#220011" stroke-width="2.5" fill="none"/>
+                
+                <!-- Elegant Nose -->
+                <path d="M 50 48 L 50 62 L 53 64" stroke="#cc8877" stroke-width="1.5" fill="none"/>
+                
+                <!-- Plump Red Lips -->
+                <path d="M 43 72 Q 50 68 57 72 Q 50 78 43 72 Z" fill="#ff0044"/>
+                <line x1="44" y1="72" x2="56" y2="72" stroke="#770000" stroke-width="1"/>
+                
+                <!-- Big Golden Hoop Earrings -->
+                <circle cx="28" cy="70" r="7" stroke="#ffcf00" stroke-width="2.5" fill="none"/>
+                <circle cx="72" cy="70" r="7" stroke="#ffcf00" stroke-width="2.5" fill="none"/>
+                
+                <!-- Sweeping Textured Bangs (Hair over face) -->
+                <path d="M 25 35 Q 35 20 52 28 Q 38 12 25 25 Z" fill="#3a003a"/>
+                <path d="M 75 35 Q 65 20 48 28 Q 62 12 75 25 Z" fill="#3a003a"/>
+                
+                <!-- Wavy Neon Hair Highlights (Volume texture) -->
+                <path d="M 12 50 Q 22 40 18 75" stroke="#ff00ff" stroke-width="1.5" fill="none"/>
+                <path d="M 88 50 Q 78 40 82 75" stroke="#00f3ff" stroke-width="1.5" fill="none"/>
+                <path d="M 28 15 Q 38 5 45 18" stroke="#ff00ff" stroke-width="1.5" fill="none"/>
+                
+                <!-- VHS Chromatic Glitch Overlay -->
+                <path d="M 30 35 Q 26 65 50 85 Q 74 65 70 35 M 43 72 Q 50 68 57 72 Q 50 78 43 72" stroke="#ff0000" stroke-width="1.5" fill="none" transform="translate(-2, 0)" opacity="0.6"/>
+                <path d="M 30 35 Q 26 65 50 85 Q 74 65 70 35 M 43 72 Q 50 68 57 72 Q 50 78 43 72" stroke="#00ffff" stroke-width="1.5" fill="none" transform="translate(2, 0)" opacity="0.6"/>
+            </svg>
+        </div>
+    </div>
+
+    <div id="ui">
+        <div id="startScreen" class="screen">
+            <h1>MIDNIGHT CITY</h1>
+            <p>
+               Steer: <span class="cyan">LEFT / RIGHT ARROWS</span><br>
+               Accelerate: <span class="highlight">UP ARROW</span><br>
+               Brake: <span class="danger">DOWN ARROW</span><br><br>
+               Collect <span class="cyan">Atari</span> symbols.<br>
+               Avoid <span class="danger">Glitching C64</span> hazards.
+            </p>
+            <button id="startBtn">INSERT COIN</button>
+        </div>
+
+        <div id="gameOverScreen" class="screen" style="display: none;">
+            <h1>SYSTEM FAILURE</h1>
+            <p>Final Score: <span id="finalScore" class="highlight">0</span></p>
+            <button id="restartBtn">REBOOT SYSTEM</button>
+        </div>
+    </div>
+
+    <div id="hud">
+        <div>SCORE: <span id="scoreDisplay">0</span></div>
+        <div>SPEED: <span id="speedDisplay">1.0</span>x</div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html>
