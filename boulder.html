@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boulder Dash: The Cyber Girl & RoboCop</title>
+    <title>Boulder Dash: The Cyber Girl vs The World</title>
     <style>
         body {
             background-color: #050510;
@@ -67,6 +67,7 @@
         .c64-color { color: #dcb; }
         .ex-color { color: #f00; }
         .robo-color { color: #aaa; text-shadow: 0 0 5px #f00; }
+        .crystal-color { color: #a0a; text-shadow: 0 0 5px #f0f; }
         #status { text-shadow: 0 0 15px currentColor; }
         
         #instructions {
@@ -98,8 +99,8 @@
     <div id="instructions">
         <strong>CLICK HERE TO ENABLE AUDIO</strong><br>
         <strong>ARROWS:</strong> Move & Dig &nbsp;|&nbsp; <strong>SPACE + ARROW:</strong> Snap Grab<br>
-        Watch out for the <span class="enemy-color">Pervs (C)</span> and the <span class="c64-color">C64 Mutants (M)</span>!<br>
-        Avoid your <span class="ex-color">EX-BOYFRIEND (X)</span> or <span class="robo-color">ROBOCOP (R)</span>. They drop rocks or shoot lasers if they spot you!
+        Avoid the <span class="ex-color">EX-BOYFRIEND (X)</span> AND <span class="robo-color">ROBOCOP (R)</span>.<br>
+        Don't let them grab the <span class="crystal-color">BLACK CRYSTALS (B)</span> or they will drain your points! Deny them by grabbing them first!
     </div>
 
     <script>
@@ -242,11 +243,11 @@
                 requiredScore: 30,
                 map: [
                     "############################################################",
-                    "#@...........................O...........#...........C.....#",
+                    "#............................O...........#...........C.....#",
                     "#..................M.........*...........#...O.............#",
                     "#...O....#####...............*...........#...*.......O.....#",
                     "#...*....#...#.........O.....*...........#...*.......*.....#",
-                    "#...*....#...#.........*.....*.....O.....#...*.......*.....#",
+                    "#@.......#...#.........*.....*.....O.....#...*.......*.....#",
                     "#........#...C..###########..*.....*.....#############.#####",
                     "#####.####...................*.....*.......................#",
                     "#............########..............*.........O.............#",
@@ -290,10 +291,125 @@
                     { speaker: 'PLAYER', text: "I can hear you nerds! I'm gonna scrap both of you!" },
                     { speaker: 'EX', text: "Good luck! I'm out of here! Get her, Murphy!" }
                 ]
+            },
+            // LEVEL 3
+            {
+                requiredScore: 40,
+                map: [
+                    "############################################################",
+                    "#............................O...........#...........C.....#",
+                    "#...B..............M.........*...........#...O.............#",
+                    "#...O....#####...............*.....B.....#...*.......O.....#",
+                    "#...*....#...#.........O.....*...........#...*...B...*.....#",
+                    "#@.......#...#...X.......R...*.....O.....#...*.......*.....#",
+                    "#........#...C..###########..*.....*.....#############.#####",
+                    "#####.####.........B.........*.....*.......................#",
+                    "#............########..............*.........O.............#",
+                    "#.O....O.....#......#..................B.....*.............#",
+                    "#............#..M...#........................*.......M.....#",
+                    "#.*....*.....#......#.......O..........*.....*.............#",
+                    "#.*....*.....########.......*..........*.....*.......B.....#",
+                    "#.*....*....................*..............................#",
+                    "#####################.#######.################.#############",
+                    "#...........O.......#.......#.#..............#.#...........#",
+                    "#...........*.......#...M...#.#......C.......#.#...........#",
+                    "#...C...B...*.......#.......#.#..............#.#...O.......#",
+                    "#...........*.......#########.################.#...*.......#",
+                    "#.................O......................B.....#...*.......#",
+                    "#.................*............................#...*.......#",
+                    "#######.###########.................O..........#...*.......#",
+                    "#.....#.#.........#.................*..........#...*.......#",
+                    "#..M..#.#...C.....#...O.............*..........#...B.......#",
+                    "#.....#.#.........#...*.......B.....*..........#############",
+                    "#.....#.#.........#...*.............*......................#",
+                    "#######.###########...*.............*......O...............#",
+                    "#.........B...........*....................*.........M.....#",
+                    "#.....O...............*.......#######......*...............#",
+                    "#.....*.......................#.....#......*...............#",
+                    "#.....*...................O...#.C...#......B...............#",
+                    "#######.........O.........*...#.....#............O.........#",
+                    "#.....#.........*.........*...#######............*.........#",
+                    "#..M..#.........*.........*......................*.........#",
+                    "#.....#.........*.........*......................*.........#",
+                    "#.....#.........*.........*.........C............*.........#",
+                    "#.....#...B.......*.........*......................*...B.....#",
+                    "#.....#.........*.........*......................*...M.....#",
+                    "#E....#.........*.........*........B.......................#",
+                    "############################################################"
+                ],
+                dialogs: [
+                    { speaker: 'EX', text: "I can't believe she survived! And you let her get away!" },
+                    { speaker: 'ROBOCOP', text: "THE EVIL ATARI GIRL USED COMMODORE MUTANTS AGAINST ME." },
+                    { speaker: 'EX', text: "Well, we have to stop her. Did you bring the big guns?" },
+                    { speaker: 'ROBOCOP', text: "MY AUTO-AIM IS FULLY CALIBRATED. BUT SHE IS FAST." },
+                    { speaker: 'EX', text: "Forget aiming! See those Black Crystals? If we touch them, it drains her score!" },
+                    { speaker: 'ROBOCOP', text: "AFFIRMATIVE. I DETECT 15 BLACK CRYSTALS IN THIS SECTOR." },
+                    { speaker: 'EX', text: "We will bankrupt her score and crush her! Team Commodore!" },
+                    { speaker: 'PLAYER', text: "Two obsolete pieces of junk teaming up? Cute." },
+                    { speaker: 'ROBOCOP', text: "DIRECTIVE 4: ELIMINATE CYBER GIRL ALONG WITH HER EX-BOYFRIEND." },
+                    { speaker: 'EX', text: "Wait, what? No, NOT me! Eliminate HER!" },
+                    { speaker: 'ROBOCOP', text: "ERROR. PARSING SARCASM. PROCEEDING WITH JOINT ATTACK." }
+                ]
+            },
+            // LEVEL 4 (OUTRO DIALOG SCENE)
+            {
+                requiredScore: 0,
+                map: [
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "###################..................#######################",
+                    "###################..................#######################",
+                    "###################..@....X....R.....#######################",
+                    "###################..................#######################",
+                    "###################..................#######################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################"
+                ],
+                dialogs: [
+                    { speaker: 'ROBOCOP', text: "MY SENSORS INDICATE FURTHER HOSTILITIES ARE ILLOGICAL. TRUCE?" },
+                    { speaker: 'EX', text: "Fine... I'm out of crystals anyway. So... we make a great team, right babe?" },
+                    { speaker: 'PLAYER', text: "We are NOT getting back together, Brad. I only date 16-bit and up." },
+                    { speaker: 'EX', text: "Ouch. Right in the motherboard." },
+                    { speaker: 'ROBOCOP', text: "EMOTIONAL DAMAGE DETECTED. DO YOU REQUIRE BURN HEAL, BRAD?" },
+                    { speaker: 'PLAYER', text: "Truce accepted. Game Over!" }
+                ]
             }
         ];
 
-        let currentLevel = 1;
+        // START AT LEVEL 1
+        let currentLevel = 1; 
+
         let levelStr = "";
         let dialogs = [];
 
@@ -319,6 +435,11 @@
         let exitOpen = false;
         let tick = 0;
 
+        // Level 3 Respawns
+        let exRespawns = 0;
+        let roboRespawns = 0;
+        let pendingRespawns = [];
+
         let exStuckCounter = 0;
         let exWanderCounter = 0;
         let exLastPos = "-1_-1";
@@ -335,12 +456,10 @@
             "64K of raw power, baby!",
             "SID chip has way better bass!",
             "Atari graphics are just muddy squares!",
-            "My new girl loves the C64!",
             "SYS 64738 on your life!",
-            "You're just jealous of my sprite multiplexer!",
+            "Grab the Black Crystals!",
             "Are you ghosting me AGAIN?!",
-            "Commodore FOREVER!",
-            "I'm freeing the C64 Mutants, you can't stop me."
+            "Commodore FOREVER!"
         ];
 
         const roboQuotes = [
@@ -348,7 +467,7 @@
             "YOUR ATARI HARDWARE IS IN VIOLATION.",
             "I'D BUY THAT FOR A DOLLAR!",
             "DIRECTIVE 4: ELIMINATE CYBER GIRL.",
-            "COMMODORE IS THE FUTURE OF LAW ENFORCEMENT.",
+            "ACQUIRING BLACK CRYSTALS...",
             "COME QUIETLY OR THERE WILL BE... TROUBLE.",
             "DROPPING ROCKS IS A CRIME."
         ];
@@ -361,17 +480,15 @@
             "?SYNTAX ERROR in tin-can.",
             "Player Missile Graphics beat your sprites!",
             "Eat static, Murphy!",
-            "Your battery is dying!",
-            "Robo-flop!"
+            "Your battery is dying!"
         ];
-        
-        const playerKillRoboQuotes = [
-            "Looks like his battery died.",
-            "Murphy is offline.",
-            "System crashed.",
-            "Guess he hit a bad sector.",
-            "Directive 0: Don't mess with me.",
-            "Scrap metal."
+
+        const playerRespawnQuotes = [
+            "Ugh, let's try that again.",
+            "Insert Coin to Continue...",
+            "Good thing I saved my state!",
+            "Respawning... so retro.",
+            "Ouch. Round 2, let's go!"
         ];
 
         let gameState = 'DIALOG';
@@ -385,6 +502,18 @@
 
             initAudio();
 
+            // Handle Respawning instantly with spacebar or 'r'
+            if (gameState === 'GAME_OVER' && (k === ' ' || k === 'Spacebar' || k === 'Enter' || k.toLowerCase() === 'r')) {
+                initGame(true); // Restart level directly into playing state
+                return;
+            }
+            
+            if (k.toLowerCase() === 'r') {
+                if (gameState === 'PLAYING') initGame(true);
+                else initGame();
+                return;
+            }
+
             if (gameState === 'TRANSITION' && (k === ' ' || k === 'Spacebar' || k === 'Enter')) {
                 currentLevel++;
                 initGame();
@@ -395,21 +524,15 @@
                 dialogIndex++;
                 playSound('blip');
                 if (dialogIndex >= dialogs.length) {
-                    gameState = 'PLAYING';
-                    playSound('win');
-
-                    // Delete EX if it's Level 2
-                    if (currentLevel === 2) {
-                        gameMap.forEach(function(tile, key) {
-                            if (tile.type === 'EX') {
-                                let parts = key.split('_');
-                                let px = parseInt(parts[0]);
-                                let py = parseInt(parts[1]);
-                                setTile(px, py, { type: 'SPACE', vx: px, vy: py, lastTick: tick, cooldown: 0 });
-                                spawnParticles(px + 0.5, py + 0.5, '#f00', 30, 8);
-                                playSound('die');
-                            }
-                        });
+                    // Check if it was the OUTRO level
+                    if (currentLevel === levels.length) {
+                        gameState = 'VICTORY';
+                        playSound('win');
+                        let status = document.getElementById("status");
+                        status.innerText = "THE END. THANKS FOR PLAYING!";
+                        status.style.color = "#0f0";
+                    } else {
+                        startLevelPlay();
                     }
                 }
                 return;
@@ -422,13 +545,30 @@
                 else if (k === 'ArrowLeft') { pendingDx = -1; pendingDy = 0; facingLeft = true; }
                 else if (k === 'ArrowRight') { pendingDx = 1; pendingDy = 0; facingLeft = false; }
             }
-
-            if(k.toLowerCase() === 'r') initGame(); 
         };
 
         window.onkeyup = function(e) { 
             keys.set(e.key, false); 
         };
+
+        function startLevelPlay() {
+            gameState = 'PLAYING';
+            playSound('win');
+
+            // Delete EX if it's Level 2 (In Level 3 they fight together)
+            if (currentLevel === 2) {
+                gameMap.forEach(function(tile, key) {
+                    if (tile.type === 'EX') {
+                        let parts = key.split('_');
+                        let px = parseInt(parts[0]);
+                        let py = parseInt(parts[1]);
+                        setTile(px, py, { type: 'SPACE', vx: px, vy: py, lastTick: tick, cooldown: 0 });
+                        spawnParticles(px + 0.5, py + 0.5, '#f00', 30, 8);
+                        playSound('die');
+                    }
+                });
+            }
+        }
 
         function getTile(x, y) { return gameMap.get(x + "_" + y); }
         function setTile(x, y, data) { gameMap.set(x + "_" + y, data); }
@@ -449,11 +589,20 @@
             floatingTexts.add({ x: x, y: y, text: text, color: color, life: 1.0 });
         }
 
-        function initGame() {
+        function initGame(isRespawn = false) {
             let config = levels[currentLevel - 1];
             levelStr = config.map.join("");
             dialogs = config.dialogs;
             requiredScore = config.requiredScore;
+
+            if (currentLevel === 3) {
+                exRespawns = 3;
+                roboRespawns = 3;
+            } else {
+                exRespawns = 0;
+                roboRespawns = 0;
+            }
+            pendingRespawns = [];
 
             gameMap.clear();
             particles.clear();
@@ -476,11 +625,15 @@
             playerQuote = { text: "", life: 0 };
             queuedPlayerResponse = "";
             
-            gameState = 'DIALOG';
-            dialogIndex = 0;
-
             document.getElementById("status").innerText = "";
-            document.getElementById("required").innerText = requiredScore;
+            
+            // Hide required score text in outro
+            if (currentLevel === levels.length) {
+                document.getElementById("required").innerText = "-";
+                document.getElementById("score").innerText = "-";
+            } else {
+                document.getElementById("required").innerText = requiredScore;
+            }
             
             for (let y = 0; y < rows; y++) {
                 for (let x = 0; x < cols; x++) {
@@ -492,6 +645,7 @@
                     else if (char === '.') t = 'DIRT';
                     else if (char === 'O') t = 'BOULDER';
                     else if (char === '*') t = 'DIAMOND';
+                    else if (char === 'B') t = 'BLACK_CRYSTAL';
                     else if (char === 'E') t = 'EXIT';
                     else if (char === 'C') { t = 'CREEP'; dir = 1; }
                     else if (char === 'M') { t = 'C64_MONSTER'; dir = 1; }
@@ -503,15 +657,25 @@
                 }
             }
             
-            let initSpeaker = dialogs[0].speaker;
-            gameMap.forEach(function(v) {
-                if (v.type === initSpeaker) {
-                    pVisX = v.vx;
-                    pVisY = v.vy;
-                }
-            });
+            // Camera setup logic depends on if we respawned or are talking
+            if (isRespawn) {
+                gameMap.forEach(function(v) {
+                    if (v.type === 'PLAYER') {
+                        pVisX = v.vx;
+                        pVisY = v.vy;
+                    }
+                });
+            } else {
+                let initSpeaker = dialogs[0].speaker;
+                gameMap.forEach(function(v) {
+                    if (v.type === initSpeaker) {
+                        pVisX = v.vx;
+                        pVisY = v.vy;
+                    }
+                });
+            }
 
-            // Lock camera firmly to starting speaker coords
+            // Lock camera firmly
             let maxCamX = (cols * ts) - canvas.width;
             let maxCamY = (rows * ts) - canvas.height;
             camX = (pVisX * ts) - (canvas.width / 2);
@@ -521,7 +685,16 @@
             if (camY < 0) camY = 0;
             if (camY > maxCamY) camY = maxCamY;
 
-            updateUI();
+            if (isRespawn) {
+                startLevelPlay();
+                playerQuote.text = playerRespawnQuotes[Math.floor(Math.random() * playerRespawnQuotes.length)];
+                playerQuote.life = 100;
+            } else {
+                gameState = 'DIALOG';
+                dialogIndex = 0;
+            }
+
+            if (currentLevel !== levels.length) updateUI();
         }
 
         function updateUI() {
@@ -548,14 +721,23 @@
                             if (target.type === 'PLAYER') {
                                 gameState = 'GAME_OVER';
                                 let status = document.getElementById("status");
-                                status.innerText = "KILLED BY EXPLOSION!";
+                                status.innerText = "KILLED! PRESS SPACE TO RESTART";
                                 status.style.color = "#f00";
                             }
                             if (target.type === 'EX' || target.type === 'ROBOCOP') {
-                                let killQuotes = target.type === 'ROBOCOP' ? playerKillRoboQuotes : ["Got him!"];
+                                if (target.type === 'EX' && currentLevel === 3 && exRespawns > 0) {
+                                    exRespawns--;
+                                    pendingRespawns.push({type: 'EX', delay: 20});
+                                } else if (target.type === 'ROBOCOP' && currentLevel === 3 && roboRespawns > 0) {
+                                    roboRespawns--;
+                                    pendingRespawns.push({type: 'ROBOCOP', delay: 20});
+                                }
+
+                                let killQuotes = target.type === 'ROBOCOP' ? ["Got him!", "Scrap metal!"] : ["See ya, Brad!", "Syntax Error!"];
                                 playerQuote.text = killQuotes[Math.floor(Math.random() * killQuotes.length)];
                                 playerQuote.life = 100;
                             }
+                            // Replace destroyed tile with diamond
                             setTile(ex, ey, { type: 'DIAMOND', vx: ex, vy: ey, lastTick: tick, falling: false, cooldown: 0 });
                             spawnParticles(ex + 0.5, ey + 0.5, '#0ff', 5, 6);
                         }
@@ -588,7 +770,7 @@
             
             if (tTile.type === 'PLAYER' || tTile.type === 'CREEP' || tTile.type === 'C64_MONSTER' || tTile.type === 'EX' || tTile.type === 'ROBOCOP' || tTile.type === 'LASER') return false;
 
-            if (tTile.type === 'SPACE' || tTile.type === 'DIRT') {
+            if (tTile.type === 'SPACE' || tTile.type === 'DIRT' || tTile.type === 'BLACK_CRYSTAL') {
                 if (tTile.type === 'DIRT') {
                     playSound('dig');
                     spawnParticles(tx + 0.5, ty + 0.5, '#A0522D', 8, 4);
@@ -603,6 +785,12 @@
                             }
                         }
                     }
+                } else if (tTile.type === 'BLACK_CRYSTAL') {
+                    score = Math.max(0, score - 1);
+                    updateUI();
+                    playSound('thud');
+                    spawnParticles(tx + 0.5, ty + 0.5, '#a0a', 15, 6);
+                    spawnText(tx, ty, "-1", "#f00");
                 }
                 swapTiles(gx, gy, tx, ty);
                 exTile.lastTick = tick;
@@ -622,6 +810,14 @@
         function getNextStalkerMove(gx, gy, pTile, creeps, forcingFollow, exTile) {
             let goals = [];
             let isRobo = (exTile.type === 'ROBOCOP');
+
+            // Find all black crystals to act as secondary targets
+            gameMap.forEach((v, key) => {
+                if (v.type === 'BLACK_CRYSTAL') {
+                    let parts = key.split('_');
+                    goals.push({x: parseInt(parts[0]), y: parseInt(parts[1]), prio: 1.5});
+                }
+            });
             
             if (pTile) {
                 let px = pTile.gx, py = pTile.gy;
@@ -645,7 +841,7 @@
                                 let d = Math.abs(dx) + Math.abs(dy);
                                 if (d >= 2 && d <= 3) {
                                     let t = getTile(px+dx, py+dy);
-                                    if (t && (t.type === 'SPACE' || t.type === 'DIRT')) goals.push({x: px+dx, y: py+dy, prio: 1});
+                                    if (t && (t.type === 'SPACE' || t.type === 'DIRT' || t.type === 'BLACK_CRYSTAL')) goals.push({x: px+dx, y: py+dy, prio: 1});
                                 }
                             }
                         }
@@ -682,7 +878,8 @@
                 
                 for (let g of goals) {
                     if (g.prio === 1 && cur.x === g.x && cur.y === g.y) return cur.firstDir;
-                    if (g.prio === 2 && Math.abs(cur.x - g.x) + Math.abs(cur.y - g.y) === 1) return cur.firstDir; 
+                    // For crystals and creeps
+                    if ((g.prio === 2 || g.prio === 1.5) && Math.abs(cur.x - g.x) + Math.abs(cur.y - g.y) === 1) return cur.firstDir; 
                 }
                 
                 for (let i = 0; i < dirs.length; i++) {
@@ -696,7 +893,7 @@
                         visited.add(key);
                         let t = getTile(nx, ny);
                         if (t) {
-                            let canWalk = (t.type === 'SPACE' || t.type === 'DIRT');
+                            let canWalk = (t.type === 'SPACE' || t.type === 'DIRT' || t.type === 'BLACK_CRYSTAL');
                             if (t.type === 'BOULDER' && dy === 0) {
                                 let behind = getTile(nx + dx, ny);
                                 if (behind && behind.type === 'SPACE') canWalk = true;
@@ -734,7 +931,9 @@
 
                 if(v.type === 'EX' || v.type === 'ROBOCOP') stalkerList.push({tile: v, gx: gx, gy: gy}); 
                 if(v.type === 'CREEP' || v.type === 'C64_MONSTER') creeps.push({tile: v, gx: gx, gy: gy});
-                if(v.type === 'PLAYER') pTile = {tile: v, gx: gx, gy: gy};
+                if(v.type === 'PLAYER') {
+                    pTile = {tile: v, gx: gx, gy: gy};
+                }
             });
             
             stalkerList.forEach(stalker => {
@@ -756,7 +955,7 @@
                             let dist = 0;
                             while(tx !== pTile.gx || ty !== pTile.gy) {
                                 let t = getTile(tx, ty);
-                                if (!t || (t.type !== 'SPACE' && t.type !== 'DIRT' && t.type !== 'LASER')) {
+                                if (!t || (t.type !== 'SPACE' && t.type !== 'DIRT' && t.type !== 'LASER' && t.type !== 'BLACK_CRYSTAL')) {
                                     clear = false; break;
                                 }
                                 tx += dx; ty += dy;
@@ -765,7 +964,10 @@
                             if (clear && dist > 0) {
                                 let sx = stalker.gx + dx, sy = stalker.gy + dy;
                                 let st = getTile(sx, sy);
-                                if (st && (st.type === 'SPACE' || st.type === 'DIRT')) {
+                                if (st && (st.type === 'SPACE' || st.type === 'DIRT' || st.type === 'BLACK_CRYSTAL')) {
+                                    if (st.type === 'BLACK_CRYSTAL') {
+                                        spawnParticles(sx + 0.5, sy + 0.5, '#a0a', 8, 4);
+                                    }
                                     playSound('laser');
                                     setTile(sx, sy, { type: 'LASER', dir: getDirFromDxDy(dx, dy), vx: sx, vy: sy, lastTick: tick, cooldown: 0 });
                                     stalker.tile.cooldown = 40; 
@@ -842,7 +1044,63 @@
             if (gameState !== 'PLAYING') return;
             tick++;
 
-            if (score >= requiredScore && !exitOpen) {
+            let px = -1, py = -1;
+            let pTile = null;
+
+            gameMap.forEach(function(tile, key) {
+                if (tile.type === 'PLAYER') {
+                    let underscore = key.indexOf('_');
+                    px = parseInt(key.substring(0, underscore));
+                    py = parseInt(key.substring(underscore + 1));
+                    pTile = {tile: tile, gx: px, gy: py};
+                }
+            });
+
+            // Process Respawns (Level 3)
+            if (pendingRespawns.length > 0 && pTile) {
+                for (let i = pendingRespawns.length - 1; i >= 0; i--) {
+                    let pr = pendingRespawns[i];
+                    pr.delay--;
+                    if (pr.delay <= 0) {
+                        let spawned = false;
+                        // Search in expanding rings to spawn safely near player
+                        for (let radius = 2; radius <= 7; radius++) {
+                            let spots = [];
+                            for (let dx = -radius; dx <= radius; dx++) {
+                                for (let dy = -radius; dy <= radius; dy++) {
+                                    if (Math.abs(dx) === radius || Math.abs(dy) === radius) {
+                                        let tx = pTile.gx + dx; let ty = pTile.gy + dy;
+                                        let t = getTile(tx, ty);
+                                        if (t && (t.type === 'SPACE' || t.type === 'DIRT')) {
+                                            spots.push({x: tx, y: ty});
+                                        }
+                                    }
+                                }
+                            }
+                            if (spots.length > 0) {
+                                let spot = spots[Math.floor(Math.random() * spots.length)];
+                                setTile(spot.x, spot.y, {type: pr.type, vx: spot.x, vy: spot.y, lastTick: tick, cooldown: 0});
+                                spawnParticles(spot.x + 0.5, spot.y + 0.5, '#f0f', 30, 6);
+                                playSound('blip');
+                                
+                                stalkerQuote.text = pr.type === 'EX' 
+                                    ? ["This is my LAST life!", "Commodore never dies!", "Did you miss me?!"][exRespawns]
+                                    : ["CRITICAL BATTERY.", "OCP SPARE PARTS DEPLOYED.", "SYSTEM REBOOT SUCCESSFUL."][roboRespawns];
+                                stalkerQuote.life = 80;
+                                
+                                spawned = true;
+                                break;
+                            }
+                        }
+                        if (spawned) {
+                            pendingRespawns.splice(i, 1);
+                        }
+                    }
+                }
+            }
+
+
+            if (score >= requiredScore && !exitOpen && currentLevel < levels.length) {
                 exitOpen = true;
                 playSound('win');
                 screenShake = 10;
@@ -850,22 +1108,15 @@
 
             let stalkerExists = false;
             let stalkerType = null;
-            let pTile = null, px = -1, py = -1;
             gameMap.forEach(function(tile, key) {
-                if (tile.type === 'PLAYER') {
-                    let underscore = key.indexOf('_');
-                    px = parseInt(key.substring(0, underscore));
-                    py = parseInt(key.substring(underscore + 1));
-                    pTile = tile;
-                }
                 if (tile.type === 'EX' || tile.type === 'ROBOCOP') {
                     stalkerExists = true;
-                    stalkerType = tile.type;
+                    stalkerType = tile.type; 
                 }
             });
 
             if (stalkerExists && Math.random() < 0.012 && stalkerQuote.life <= 0 && playerQuote.life <= 0) {
-                let qList = stalkerType === 'ROBOCOP' ? roboQuotes : exQuotes;
+                let qList = (Math.random() > 0.5) ? roboQuotes : exQuotes;
                 stalkerQuote.text = qList[Math.floor(Math.random() * qList.length)];
                 stalkerQuote.life = 70;
                 if (Math.random() > 0.4) {
@@ -919,12 +1170,21 @@
                                 spawnParticles(tx + 0.5, ty + 0.5, '#00FFFF', 15, 6);
                                 spawnText(tx, ty, "+100", "#00FFFF");
                                 setTile(tx, ty, { type: 'SPACE', vx: tx, vy: ty, lastTick: tick, cooldown: 0 });
+                            } else if (target.type === 'BLACK_CRYSTAL') {
+                                playSound('thud');
+                                spawnParticles(tx + 0.5, ty + 0.5, '#a0a', 15, 6);
+                                spawnText(tx, ty, "DENIED", "#a0a");
+                                setTile(tx, ty, { type: 'SPACE', vx: tx, vy: ty, lastTick: tick, cooldown: 0 });
                             }
                         } else {
-                            if (target.type === 'SPACE' || target.type === 'DIRT') {
+                            if (target.type === 'SPACE' || target.type === 'DIRT' || target.type === 'BLACK_CRYSTAL') {
                                 if (target.type === 'DIRT') {
                                     playSound('dig');
                                     spawnParticles(tx + 0.5, ty + 0.5, '#A0522D', 8, 4);
+                                } else if (target.type === 'BLACK_CRYSTAL') {
+                                    playSound('thud');
+                                    spawnParticles(tx + 0.5, ty + 0.5, '#a0a', 15, 6);
+                                    spawnText(tx, ty, "DENIED", "#a0a");
                                 }
                                 swapTiles(px, py, tx, ty);
                             } else if (target.type === 'DIAMOND') {
@@ -940,19 +1200,12 @@
                                 }
                             } else if (target.type === 'EXIT' && exitOpen) {
                                 swapTiles(px, py, tx, ty);
-                                if (currentLevel < levels.length) {
-                                    gameState = 'TRANSITION'; 
-                                    playSound('win');
-                                    let status = document.getElementById("status");
-                                    status.innerText = "LEVEL COMPLETE! PRESS SPACE";
-                                    status.style.color = "#0f0";
-                                } else {
-                                    gameState = 'VICTORY'; 
-                                    playSound('win');
-                                    let status = document.getElementById("status");
-                                    status.innerText = "YOU ESCAPED! YOU WIN!";
-                                    status.style.color = "#0f0";
-                                }
+                                // Normal level complete progression
+                                gameState = 'TRANSITION'; 
+                                playSound('win');
+                                let status = document.getElementById("status");
+                                status.innerText = "LEVEL COMPLETE! PRESS SPACE";
+                                status.style.color = "#0f0";
                             }
                         }
                     }
@@ -971,8 +1224,9 @@
                         let nx = x + delta.x; let ny = y + delta.y;
                         let nTile = getTile(nx, ny);
                         if (nTile) {
-                            if (nTile.type === 'SPACE' || nTile.type === 'DIRT') {
+                            if (nTile.type === 'SPACE' || nTile.type === 'DIRT' || nTile.type === 'BLACK_CRYSTAL') {
                                 if (nTile.type === 'DIRT') spawnParticles(nx + 0.5, ny + 0.5, '#A0522D', 4, 2);
+                                if (nTile.type === 'BLACK_CRYSTAL') spawnParticles(nx + 0.5, ny + 0.5, '#a0a', 8, 4);
                                 setTile(nx, ny, t);
                                 setTile(x, y, {type: 'SPACE', vx: x, vy: y, cooldown: 0});
                                 t.lastTick = tick;
@@ -1002,6 +1256,7 @@
                         let rightTile = getTile(x + rightDelta.x, y + rightDelta.y);
                         let frontTile = getTile(x + frontDelta.x, y + frontDelta.y);
 
+                        // Note: Omitting EX from this logic makes EX immune to getting eaten by monsters (they just bounce off him like a wall)
                         if (rightTile && (rightTile.type === 'SPACE' || rightTile.type === 'PLAYER' || rightTile.type === 'ROBOCOP')) {
                             if (rightTile.type === 'PLAYER' || rightTile.type === 'ROBOCOP') explode(x + rightDelta.x, y + rightDelta.y);
                             else {
@@ -1017,13 +1272,13 @@
                         }
                     }
                     
-                    if (t.type === 'BOULDER' || t.type === 'DIAMOND') {
+                    if (t.type === 'BOULDER' || t.type === 'DIAMOND' || t.type === 'BLACK_CRYSTAL') {
                         let b = getTile(x, y + 1);
                         
                         if (t.falling && b && b.type !== 'SPACE') {
                             if (b.type === 'PLAYER' || b.type === 'CREEP' || b.type === 'C64_MONSTER' || b.type === 'EX' || b.type === 'ROBOCOP') {
                                 explode(x, y + 1);
-                            } else if (t.type === 'BOULDER') {
+                            } else if (t.type === 'BOULDER' || t.type === 'BLACK_CRYSTAL') {
                                 playSound('thud');
                                 screenShake = 5;
                                 spawnParticles(x + 0.5, y + 1, '#888', 6, 2);
@@ -1033,7 +1288,7 @@
                         if (b && b.type === 'SPACE') {
                             t.falling = true;
                             swapTiles(x, y, x, y + 1);
-                        } else if (b && (b.type === 'BOULDER' || b.type === 'DIAMOND' || b.type === 'WALL')) {
+                        } else if (b && (b.type === 'BOULDER' || b.type === 'DIAMOND' || b.type === 'BLACK_CRYSTAL' || b.type === 'WALL')) {
                             let left = getTile(x - 1, y), bLeft = getTile(x - 1, y + 1);
                             let right = getTile(x + 1, y), bRight = getTile(x + 1, y + 1);
 
@@ -1275,6 +1530,24 @@
                         ctx.fill();
                         
                         ctx.fillStyle = '#fff';
+                        ctx.beginPath();
+                        ctx.moveTo(0, -6); ctx.lineTo(4, 0);
+                        ctx.lineTo(0, 6); ctx.lineTo(-4, 0);
+                        ctx.fill();
+                        ctx.restore();
+                    } else if (tile.type === 'BLACK_CRYSTAL') {
+                        let floatY = Math.sin(time + x + y) * 3;
+                        ctx.save();
+                        ctx.translate(cx + 16, cy + 16 + floatY);
+                        
+                        ctx.shadowBlur = 15; ctx.shadowColor = '#505';
+                        ctx.fillStyle = '#202';
+                        ctx.beginPath();
+                        ctx.moveTo(0, -12); ctx.lineTo(12, 0);
+                        ctx.lineTo(0, 12); ctx.lineTo(-12, 0);
+                        ctx.fill();
+                        
+                        ctx.fillStyle = '#626';
                         ctx.beginPath();
                         ctx.moveTo(0, -6); ctx.lineTo(4, 0);
                         ctx.lineTo(0, 6); ctx.lineTo(-4, 0);
@@ -1608,7 +1881,6 @@
                 }
             }
 
-            // Restore the context back to 0,0 screen-space so UI elements don't move with the camera
             ctx.restore();
 
             // Particles
@@ -1647,7 +1919,7 @@
             ctx.globalAlpha = 1.0; ctx.shadowBlur = 0;
             ctx.restore();
 
-            // Draw Dialog UI (Always draws over the screen bounds)
+            // Draw Dialog UI
             if (gameState === 'DIALOG') {
                 ctx.fillStyle = 'rgba(0,0,0,0.6)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1662,10 +1934,8 @@
                     }
                 });
 
-                // Calculate screen position from world position for the bubble tailor tip
                 let screenX = speakerWorldX - Math.floor(camX);
                 let screenY = speakerWorldY - Math.floor(camY);
-
                 drawBubble(current.text, screenX, screenY);
             }
         }
