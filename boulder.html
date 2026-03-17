@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boulder Dash: The Cyber Girl & RoboCop</title>
+    <style>
+        body {
+            background-color: #050510;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding-top: 2vh;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        #game-wrapper {
+            position: relative;
+            border-radius: 12px;
+            padding: 4px;
+            background: linear-gradient(135deg, #2a2a35, #101018);
+            box-shadow: 
+                0 0 10px rgba(0,255,255,0.1), 
+                0 0 30px rgba(0,255,255,0.2), 
+                0 0 60px rgba(0,255,255,0.1),
+                inset 0 0 20px #000;
+        }
+
+        canvas {
+            display: block;
+            border-radius: 8px;
+            background-color: #000;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.9);
+        }
+
+        #game-wrapper::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+            border-radius: 12px;
+        }
+
+        #ui {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 800px;
+            margin-bottom: 15px;
+            font-size: 26px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px #0ff;
+        }
+
+        .highlight { color: #0ff; }
+        .enemy-color { color: #f4a; }
+        .c64-color { color: #dcb; }
+        .ex-color { color: #f00; }
+        .robo-color { color: #aaa; text-shadow: 0 0 5px #f00; }
+        #status { text-shadow: 0 0 15px currentColor; }
+        
+        #instructions {
+            margin-top: 20px;
+            color: #aaa;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.6;
+            max-width: 800px;
+            background: rgba(0,255,255,0.05);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(0,255,255,0.2);
+        }
+        strong { color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <div>💎 <span id="score" class="highlight">0</span> / <span id="required">30</span></div>
+        <div id="status"></div>
+    </div>
+
+    <div id="game-wrapper">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+    </div>
+
+    <div id="instructions">
+        <strong>CLICK HERE TO ENABLE AUDIO</strong><br>
+        <strong>ARROWS:</strong> Move & Dig &nbsp;|&nbsp; <strong>SPACE + ARROW:</strong> Snap Grab<br>
+        Watch out for the <span class="enemy-color">Pervs (C)</span> and the <span class="c64-color">C64 Mutants (M)</span>!<br>
+        Avoid your <span class="ex-color">EX-BOYFRIEND (X)</span> or <span class="robo-color">ROBOCOP (R)</span>. They drop rocks or shoot lasers if they spot you!
+    </div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+        
+        window.addEventListener('click', initAudio, {once:true});
+        window.addEventListener('keydown', initAudio, {once:true});
+
+        function playSound(type) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'dig') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'diamond') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1200, now);
+                osc.frequency.setValueAtTime(2000, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if (type === 'thud') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(80, now);
+                osc.frequency.exponentialRampToValueAtTime(20, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if (type === 'die') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(10, now + 0.7);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.7);
+                osc.start(now); osc.stop(now + 0.7);
+            } else if (type === 'win') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.setValueAtTime(554, now + 0.1);
+                osc.frequency.setValueAtTime(659, now + 0.2);
+                osc.frequency.setValueAtTime(880, now + 0.3);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.6);
+                osc.start(now); osc.stop(now + 0.6);
+            } else if (type === 'blip') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.05);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now); osc.stop(now + 0.05);
+            } else if (type === 'laser') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now); osc.stop(now + 0.15);
+            }
+        }
+
+        const cols = 60;
+        const rows = 40;
+        const ts = 32;
+
+        const levels = [
+            // LEVEL 1
+            {
+                requiredScore: 30,
+                map: [
+                    "############################################################",
+                    "#............................O...........#...........C.....#",
+                    "#..................M.........*...........#...O.............#",
+                    "#...O....#####...............*...........#...*.......O.....#",
+                    "#...*....#...#.........O.....*...........#...*.......*.....#",
+                    "#...*....#...#.........*.....*.....O.....#...*.......*.....#",
+                    "#........#...C..###########..*.....*.....#############.#####",
+                    "#####.####...................*.....*.......................#",
+                    "#............########..............*.........O.............#",
+                    "#.O....O.....#......#........................*.............#",
+                    "#@..X..*.....#.M....#..................O.....*.......M.....#",
+                    "#.*....*.....#......#.......O..........*.....*.............#",
+                    "#.*....*.....########.......*..........*.....*.............#",
+                    "#.*....*....................*..............................#",
+                    "#####################.#######.################.#############",
+                    "#...........O.......#.......#.#..............#.#...........#",
+                    "#...........*.......#...M...#.#......C.......#.#...........#",
+                    "#...C.......*.......#.......#.#..............#.#...O.......#",
+                    "#...........*.......#########.################.#...*.......#",
+                    "#..............................................#...*.......#",
+                    "#.................O............................#...*.......#",
+                    "#######.###########.................O..........#...*.......#",
+                    "#.....#.#.........#.................*..........#...*.......#",
+                    "#..M..#.#...C.....#...O.............*..........#...........#",
+                    "#.....#.#.........#...*.............*..........#############",
+                    "#.....#.#.........#...*.............*......................#",
+                    "#######.###########...*.............*......O...............#",
+                    "#.....................*....................*.........M.....#",
+                    "#.....O...............*.......#######......*...............#",
+                    "#.....*.......................#.....#......*...............#",
+                    "#.....*...................O...#.C...#......................#",
+                    "#######.........O.........*...#.....#............O.........#",
+                    "#.....#.........*.........*...#######............*.........#",
+                    "#..M..#.........*.........*......................*.........#",
+                    "#.....#.........*.........*......................*.........#",
+                    "#.....#.........*.........*.........C............*.........#",
+                    "#.....#.........*.........*......................*.........#",
+                    "#.....#.........*.........*......................*...M.....#",
+                    "#E....#.........*.........*......................*.........#",
+                    "############################################################"
+                ],
+                dialogs: [
+                    { speaker: 'EX', text: "Hey babe... nice Atari cyber-suit. Too bad Atari sucks." },
+                    { speaker: 'PLAYER', text: "Brad?! Are you still obsessing over that Commodore trash?" },
+                    { speaker: 'EX', text: "C64 is the greatest machine ever made! I'm unleashing my C64 mutants!" },
+                    { speaker: 'PLAYER', text: "Your hardware is as obsolete as our relationship!" },
+                    { speaker: 'EX', text: "We'll see who crashes first! Commodore forever!" }
+                ]
+            },
+            // LEVEL 2
+            {
+                requiredScore: 30,
+                map: [
+                    "############################################################",
+                    "#@...........................O...........#...........C.....#",
+                    "#..................M.........*...........#...O.............#",
+                    "#...O....#####...............*...........#...*.......O.....#",
+                    "#...*....#...#.........O.....*...........#...*.......*.....#",
+                    "#...*....#...#.........*.....*.....O.....#...*.......*.....#",
+                    "#........#...C..###########..*.....*.....#############.#####",
+                    "#####.####...................*.....*.......................#",
+                    "#............########..............*.........O.............#",
+                    "#.O....O.....#......#........................*.............#",
+                    "#............#..M...#..................O.....*.......M.....#",
+                    "#.*....*.....#......#.......O..........*.....*.............#",
+                    "#.*....*.....########.......*..........*.....*.............#",
+                    "#.*....*....................*..............................#",
+                    "#####################.#######.################.#############",
+                    "#...........O.......#.......#.#..............#.#...........#",
+                    "#...........*.......#...M...#.#......C.......#.#...........#",
+                    "#...C.......*.......#.......#.#..............#.#...O.......#",
+                    "#...........*.......#########.################.#...*.......#",
+                    "#..............................................#...*.......#",
+                    "#.................O............................#...*.......#",
+                    "#######.###########.................O..........#...*.......#",
+                    "#.....#.#.........#.................*..........#...*.......#",
+                    "#..M..#.#...C.....#...O.............*..........#...........#",
+                    "#.....#.#.........#...*.............*..........#############",
+                    "#.....#.#.........#...*.............*......................#",
+                    "#######.###########...*.............*......O...............#",
+                    "#.....................*....................*.........M.....#",
+                    "#.....O...............*.......#######......*...............#",
+                    "#.....*.......................#.....#......*...............#",
+                    "#.....*...................O...#.C...#......................#",
+                    "#######.........O.........*...#.....#............O.........#",
+                    "#.....#.........*.........*...#######............*.........#",
+                    "#..M..#.........*.........*......................*.........#",
+                    "#.....#.........*.........*......................*.........#",
+                    "#.....#.........*.........*.........C............*.........#",
+                    "#.....#.........*.........*....................X...R.......#",
+                    "#.....#.........*.........*......................*...M.....#",
+                    "#E....#.........*.........*......................*.........#",
+                    "############################################################"
+                ],
+                dialogs: [
+                    { speaker: 'EX', text: "RoboCop! You gotta eliminate my ex! She dropped a 10-ton boulder on my head!" },
+                    { speaker: 'ROBOCOP', text: "DIRECTIVE ACCEPTED. TARGET CLASSIFIED AS THREAT TO COMMODORE." },
+                    { speaker: 'EX', text: "Haha! You know, they didn't even make a RoboCop game for Atari 2600. It never existed!" },
+                    { speaker: 'ROBOCOP', text: "AFFIRMATIVE. HA. HA. WE DO NOT SPEAK OF THE ATARI DEMAKES." },
+                    { speaker: 'PLAYER', text: "I can hear you nerds! I'm gonna scrap both of you!" },
+                    { speaker: 'EX', text: "Good luck! I'm out of here! Get her, Murphy!" }
+                ]
+            }
+        ];
+
+        let currentLevel = 1;
+        let levelStr = "";
+        let dialogs = [];
+
+        let gameMap = new Map();
+        let particles = new Set();
+        let floatingTexts = new Set();
+        let keys = new Map();
+        
+        let pendingDx = 0; let pendingDy = 0;
+        let facingLeft = false;
+        let playerWalkAnim = 0;
+
+        let screenShake = 0;
+        let time = 0;
+        
+        let camX = 0;
+        let camY = 0;
+        let pVisX = 1;
+        let pVisY = 1;
+
+        let score = 0;
+        let requiredScore = 30;
+        let exitOpen = false;
+        let tick = 0;
+
+        let exStuckCounter = 0;
+        let exWanderCounter = 0;
+        let exLastPos = "-1_-1";
+        let exFreedCreep = false;
+        let exFollowTimer = 0;
+        let exMustFollow = false;
+        
+        let stalkerQuote = { text: "", life: 0 };
+        let playerQuote = { text: "", life: 0 };
+        let queuedPlayerResponse = "";
+        
+        const exQuotes = [
+            "LOAD 'BRAD',8,1",
+            "64K of raw power, baby!",
+            "SID chip has way better bass!",
+            "Atari graphics are just muddy squares!",
+            "My new girl loves the C64!",
+            "SYS 64738 on your life!",
+            "You're just jealous of my sprite multiplexer!",
+            "Are you ghosting me AGAIN?!",
+            "Commodore FOREVER!",
+            "I'm freeing the C64 Mutants, you can't stop me."
+        ];
+
+        const roboQuotes = [
+            "DEAD OR ALIVE, YOU ARE COMING WITH ME.",
+            "YOUR ATARI HARDWARE IS IN VIOLATION.",
+            "I'D BUY THAT FOR A DOLLAR!",
+            "DIRECTIVE 4: ELIMINATE CYBER GIRL.",
+            "COMMODORE IS THE FUTURE OF LAW ENFORCEMENT.",
+            "COME QUIETLY OR THERE WILL BE... TROUBLE.",
+            "DROPPING ROCKS IS A CRIME."
+        ];
+        
+        const playerResponses = [
+            "POKEY chip > your life.",
+            "You're stuck in 16 colors!",
+            "Go rewind your datasette!",
+            "At least I have proper custom chips!",
+            "?SYNTAX ERROR in tin-can.",
+            "Player Missile Graphics beat your sprites!",
+            "Eat static, Murphy!",
+            "Your battery is dying!",
+            "Robo-flop!"
+        ];
+        
+        const playerKillRoboQuotes = [
+            "Looks like his battery died.",
+            "Murphy is offline.",
+            "System crashed.",
+            "Guess he hit a bad sector.",
+            "Directive 0: Don't mess with me.",
+            "Scrap metal."
+        ];
+
+        let gameState = 'DIALOG';
+        let dialogIndex = 0;
+
+        window.onkeydown = function(e) { 
+            let k = e.key;
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Spacebar', 'Enter'].includes(k)) {
+                e.preventDefault();
+            }
+
+            initAudio();
+
+            if (gameState === 'TRANSITION' && (k === ' ' || k === 'Spacebar' || k === 'Enter')) {
+                currentLevel++;
+                initGame();
+                return;
+            }
+
+            if (gameState === 'DIALOG' && (k === ' ' || k === 'Spacebar' || k === 'Enter')) {
+                dialogIndex++;
+                playSound('blip');
+                if (dialogIndex >= dialogs.length) {
+                    gameState = 'PLAYING';
+                    playSound('win');
+
+                    // Delete EX if it's Level 2
+                    if (currentLevel === 2) {
+                        gameMap.forEach(function(tile, key) {
+                            if (tile.type === 'EX') {
+                                let parts = key.split('_');
+                                let px = parseInt(parts[0]);
+                                let py = parseInt(parts[1]);
+                                setTile(px, py, { type: 'SPACE', vx: px, vy: py, lastTick: tick, cooldown: 0 });
+                                spawnParticles(px + 0.5, py + 0.5, '#f00', 30, 8);
+                                playSound('die');
+                            }
+                        });
+                    }
+                }
+                return;
+            }
+
+            if (gameState === 'PLAYING') {
+                keys.set(k, true); 
+                if (k === 'ArrowUp') { pendingDy = -1; pendingDx = 0; }
+                else if (k === 'ArrowDown') { pendingDy = 1; pendingDx = 0; }
+                else if (k === 'ArrowLeft') { pendingDx = -1; pendingDy = 0; facingLeft = true; }
+                else if (k === 'ArrowRight') { pendingDx = 1; pendingDy = 0; facingLeft = false; }
+            }
+
+            if(k.toLowerCase() === 'r') initGame(); 
+        };
+
+        window.onkeyup = function(e) { 
+            keys.set(e.key, false); 
+        };
+
+        function getTile(x, y) { return gameMap.get(x + "_" + y); }
+        function setTile(x, y, data) { gameMap.set(x + "_" + y, data); }
+
+        function spawnParticles(x, y, color, count, speed) {
+            for (let i = 0; i < count; i++) {
+                particles.add({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * speed,
+                    vy: (Math.random() - 0.5) * speed,
+                    life: 1.0, decay: Math.random() * 0.03 + 0.02,
+                    color: color, size: Math.random() * 4 + 2
+                });
+            }
+        }
+
+        function spawnText(x, y, text, color) {
+            floatingTexts.add({ x: x, y: y, text: text, color: color, life: 1.0 });
+        }
+
+        function initGame() {
+            let config = levels[currentLevel - 1];
+            levelStr = config.map.join("");
+            dialogs = config.dialogs;
+            requiredScore = config.requiredScore;
+
+            gameMap.clear();
+            particles.clear();
+            floatingTexts.clear();
+            
+            pendingDx = 0; pendingDy = 0;
+            playerWalkAnim = 0; facingLeft = false;
+            
+            score = 0; exitOpen = false; tick = 0;
+            screenShake = 0;
+            
+            exStuckCounter = 0;
+            exWanderCounter = 0;
+            exLastPos = "-1_-1";
+            exFreedCreep = false;
+            exFollowTimer = 0;
+            exMustFollow = false;
+            
+            stalkerQuote = { text: "", life: 0 };
+            playerQuote = { text: "", life: 0 };
+            queuedPlayerResponse = "";
+            
+            gameState = 'DIALOG';
+            dialogIndex = 0;
+
+            document.getElementById("status").innerText = "";
+            document.getElementById("required").innerText = requiredScore;
+            
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    let char = levelStr.charAt(y * cols + x);
+                    let t = 'SPACE';
+                    let dir = 0; 
+                    
+                    if (char === '#') t = 'WALL';
+                    else if (char === '.') t = 'DIRT';
+                    else if (char === 'O') t = 'BOULDER';
+                    else if (char === '*') t = 'DIAMOND';
+                    else if (char === 'E') t = 'EXIT';
+                    else if (char === 'C') { t = 'CREEP'; dir = 1; }
+                    else if (char === 'M') { t = 'C64_MONSTER'; dir = 1; }
+                    else if (char === 'X') { t = 'EX'; }
+                    else if (char === 'R') { t = 'ROBOCOP'; }
+                    else if (char === '@') { t = 'PLAYER'; }
+                    
+                    setTile(x, y, { type: t, falling: false, lastTick: 0, vx: x, vy: y, dir: dir, cooldown: 0 });
+                }
+            }
+            
+            let initSpeaker = dialogs[0].speaker;
+            gameMap.forEach(function(v) {
+                if (v.type === initSpeaker) {
+                    pVisX = v.vx;
+                    pVisY = v.vy;
+                }
+            });
+
+            // Lock camera firmly to starting speaker coords
+            let maxCamX = (cols * ts) - canvas.width;
+            let maxCamY = (rows * ts) - canvas.height;
+            camX = (pVisX * ts) - (canvas.width / 2);
+            camY = (pVisY * ts) - (canvas.height / 2);
+            if (camX < 0) camX = 0;
+            if (camX > maxCamX) camX = maxCamX;
+            if (camY < 0) camY = 0;
+            if (camY > maxCamY) camY = maxCamY;
+
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById("score").innerText = score;
+        }
+
+        function swapTiles(x1, y1, x2, y2) {
+            let t1 = getTile(x1, y1);
+            let t2 = getTile(x2, y2);
+            
+            t1.lastTick = tick;
+            setTile(x2, y2, t1);
+            setTile(x1, y1, { type: 'SPACE', vx: x1, vy: y1, cooldown: 0 });
+        }
+
+        function explode(cx, cy) {
+            playSound('die');
+            screenShake = 25;
+            for (let ey = cy - 1; ey <= cy + 1; ey++) {
+                for (let ex = cx - 1; ex <= cx + 1; ex++) {
+                    if (ex > 0 && ex < cols - 1 && ey > 0 && ey < rows - 1) {
+                        let target = getTile(ex, ey);
+                        if (target) {
+                            if (target.type === 'PLAYER') {
+                                gameState = 'GAME_OVER';
+                                let status = document.getElementById("status");
+                                status.innerText = "KILLED BY EXPLOSION!";
+                                status.style.color = "#f00";
+                            }
+                            if (target.type === 'EX' || target.type === 'ROBOCOP') {
+                                let killQuotes = target.type === 'ROBOCOP' ? playerKillRoboQuotes : ["Got him!"];
+                                playerQuote.text = killQuotes[Math.floor(Math.random() * killQuotes.length)];
+                                playerQuote.life = 100;
+                            }
+                            setTile(ex, ey, { type: 'DIAMOND', vx: ex, vy: ey, lastTick: tick, falling: false, cooldown: 0 });
+                            spawnParticles(ex + 0.5, ey + 0.5, '#0ff', 5, 6);
+                        }
+                    }
+                }
+            }
+        }
+
+        function getDirDelta(dir) {
+            if (dir === 0) return { x: 0, y: -1 };       
+            if (dir === 1) return { x: 1, y: 0 };   
+            if (dir === 2) return { x: 0, y: 1 };   
+            if (dir === 3) return { x: -1, y: 0 };  
+            return { x: 0, y: 0 };
+        }
+
+        function getDirFromDxDy(dx, dy) {
+            if (dy === -1) return 0;
+            if (dx === 1) return 1;
+            if (dy === 1) return 2;
+            if (dx === -1) return 3;
+            return 0;
+        }
+
+        function tryStalkerMove(exTile, gx, gy, dx, dy) {
+            if (dx === 0 && dy === 0) return false;
+            let tx = gx + dx; let ty = gy + dy;
+            let tTile = getTile(tx, ty);
+            if (!tTile) return false;
+            
+            if (tTile.type === 'PLAYER' || tTile.type === 'CREEP' || tTile.type === 'C64_MONSTER' || tTile.type === 'EX' || tTile.type === 'ROBOCOP' || tTile.type === 'LASER') return false;
+
+            if (tTile.type === 'SPACE' || tTile.type === 'DIRT') {
+                if (tTile.type === 'DIRT') {
+                    playSound('dig');
+                    spawnParticles(tx + 0.5, ty + 0.5, '#A0522D', 8, 4);
+                    
+                    if (!exFreedCreep && exTile.type === 'EX') {
+                        let dirs = [[0,-1],[1,0],[0,1],[-1,0]];
+                        for(let d of dirs) {
+                            let adj = getTile(tx+d[0], ty+d[1]);
+                            if (adj && (adj.type === 'CREEP' || adj.type === 'C64_MONSTER')) {
+                                exFreedCreep = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                swapTiles(gx, gy, tx, ty);
+                exTile.lastTick = tick;
+                return true;
+            } else if (tTile.type === 'BOULDER' && dy === 0) {
+                let behind = getTile(tx + dx, ty);
+                if (behind && behind.type === 'SPACE') {
+                    swapTiles(tx, ty, tx + dx, ty);
+                    swapTiles(gx, gy, tx, ty);
+                    exTile.lastTick = tick;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function getNextStalkerMove(gx, gy, pTile, creeps, forcingFollow, exTile) {
+            let goals = [];
+            let isRobo = (exTile.type === 'ROBOCOP');
+            
+            if (pTile) {
+                let px = pTile.gx, py = pTile.gy;
+                
+                if (isRobo) {
+                    let dist = Math.abs(gx - px) + Math.abs(gy - py);
+                    if (dist < 4) {
+                        let dx = Math.sign(gx - px) || (Math.random()>0.5?1:-1);
+                        let dy = Math.sign(gy - py) || (Math.random()>0.5?1:-1);
+                        goals.push({x: gx + dx*4, y: gy + dy*4, prio: 1});
+                    } else {
+                        goals.push({x: px, y: py - 6, prio: 1});
+                        goals.push({x: px, y: py + 6, prio: 1});
+                        goals.push({x: px - 6, y: py, prio: 1});
+                        goals.push({x: px + 6, y: py, prio: 1});
+                    }
+                } else {
+                    if (forcingFollow) {
+                        for(let dy=-3; dy<=3; dy++) {
+                            for(let dx=-3; dx<=3; dx++) {
+                                let d = Math.abs(dx) + Math.abs(dy);
+                                if (d >= 2 && d <= 3) {
+                                    let t = getTile(px+dx, py+dy);
+                                    if (t && (t.type === 'SPACE' || t.type === 'DIRT')) goals.push({x: px+dx, y: py+dy, prio: 1});
+                                }
+                            }
+                        }
+                    } else {
+                        let above = getTile(px, py - 1);
+                        if (above && above.type === 'SPACE') {
+                            let left = getTile(px - 1, py - 1);
+                            if (left && left.type === 'BOULDER') goals.push({x: px - 2, y: py - 1, prio: 1, pushDir: 1});
+                            
+                            let right = getTile(px + 1, py - 1);
+                            if (right && right.type === 'BOULDER') goals.push({x: px + 2, y: py - 1, prio: 1, pushDir: -1});
+                        }
+                        if (!exFreedCreep) creeps.forEach(c => goals.push({x: c.gx, y: c.gy, prio: 2}));
+                    }
+                }
+            }
+            
+            if (goals.length === 0) return null;
+            
+            for (let g of goals) {
+                if (g.prio === 1 && gx === g.x && gy === g.y && g.pushDir) return {dx: g.pushDir, dy: 0};
+            }
+            
+            let q = [{x: gx, y: gy, firstDir: null}];
+            let visited = new Set();
+            visited.add(gx + "_" + gy);
+            
+            let dirs = [[0,-1], [1,0], [0,1], [-1,0]];
+            let iters = 0;
+            
+            while(q.length > 0 && iters < 500) {
+                iters++;
+                let cur = q.shift();
+                
+                for (let g of goals) {
+                    if (g.prio === 1 && cur.x === g.x && cur.y === g.y) return cur.firstDir;
+                    if (g.prio === 2 && Math.abs(cur.x - g.x) + Math.abs(cur.y - g.y) === 1) return cur.firstDir; 
+                }
+                
+                for (let i = 0; i < dirs.length; i++) {
+                    let dx = dirs[i][0]; let dy = dirs[i][1];
+                    let nx = cur.x + dx; let ny = cur.y + dy;
+                    let key = nx + "_" + ny;
+                    
+                    let distToP = pTile ? Math.abs(nx - pTile.gx) + Math.abs(ny - pTile.gy) : 999;
+                    
+                    if (!visited.has(key)) {
+                        visited.add(key);
+                        let t = getTile(nx, ny);
+                        if (t) {
+                            let canWalk = (t.type === 'SPACE' || t.type === 'DIRT');
+                            if (t.type === 'BOULDER' && dy === 0) {
+                                let behind = getTile(nx + dx, ny);
+                                if (behind && behind.type === 'SPACE') canWalk = true;
+                            }
+                            
+                            if (isRobo) {
+                                let adjCreep = false;
+                                for(let c of creeps) {
+                                    if(Math.abs(nx - c.gx) + Math.abs(ny - c.gy) <= 2) adjCreep = true;
+                                }
+                                if(adjCreep) canWalk = false;
+                            }
+
+                            if (!isRobo && distToP <= 1) canWalk = false; 
+                            
+                            if (canWalk) {
+                                q.push({ x: nx, y: ny, firstDir: cur.firstDir || {dx: dx, dy: dy} });
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        function moveStalkers() {
+            let stalkerList = [];
+            let creeps = [];
+            let pTile = null;
+            
+            gameMap.forEach((v, key) => { 
+                let parts = key.split('_');
+                let gx = parseInt(parts[0]);
+                let gy = parseInt(parts[1]);
+
+                if(v.type === 'EX' || v.type === 'ROBOCOP') stalkerList.push({tile: v, gx: gx, gy: gy}); 
+                if(v.type === 'CREEP' || v.type === 'C64_MONSTER') creeps.push({tile: v, gx: gx, gy: gy});
+                if(v.type === 'PLAYER') pTile = {tile: v, gx: gx, gy: gy};
+            });
+            
+            stalkerList.forEach(stalker => {
+                if (stalker.tile.lastTick === tick) return;
+                
+                let isRobo = stalker.tile.type === 'ROBOCOP';
+
+                if (isRobo) {
+                    if (stalker.tile.cooldown > 0) stalker.tile.cooldown--;
+                    
+                    if (stalker.tile.cooldown <= 0 && pTile) {
+                        let dx = 0, dy = 0;
+                        if (pTile.gx === stalker.gx) dy = Math.sign(pTile.gy - stalker.gy);
+                        else if (pTile.gy === stalker.gy) dx = Math.sign(pTile.gx - stalker.gx);
+                        
+                        if (dx !== 0 || dy !== 0) {
+                            let clear = true;
+                            let tx = stalker.gx + dx, ty = stalker.gy + dy;
+                            let dist = 0;
+                            while(tx !== pTile.gx || ty !== pTile.gy) {
+                                let t = getTile(tx, ty);
+                                if (!t || (t.type !== 'SPACE' && t.type !== 'DIRT' && t.type !== 'LASER')) {
+                                    clear = false; break;
+                                }
+                                tx += dx; ty += dy;
+                                dist++;
+                            }
+                            if (clear && dist > 0) {
+                                let sx = stalker.gx + dx, sy = stalker.gy + dy;
+                                let st = getTile(sx, sy);
+                                if (st && (st.type === 'SPACE' || st.type === 'DIRT')) {
+                                    playSound('laser');
+                                    setTile(sx, sy, { type: 'LASER', dir: getDirFromDxDy(dx, dy), vx: sx, vy: sy, lastTick: tick, cooldown: 0 });
+                                    stalker.tile.cooldown = 40; 
+                                    stalker.tile.lastTick = tick;
+                                    return; 
+                                }
+                            }
+                        }
+                    }
+                }
+
+                let distToP = pTile ? (Math.abs(stalker.gx - pTile.gx) + Math.abs(stalker.gy - pTile.gy)) : 0;
+                let isOffScreen = pTile && (Math.abs(stalker.gx - (camX/ts + 12)) > 14 || Math.abs(stalker.gy - (camY/ts + 9)) > 10);
+                
+                if (!exMustFollow) exFollowTimer++;
+                
+                if (exFollowTimer > 61 || isOffScreen) {
+                    exMustFollow = true;
+                }
+                
+                if (exMustFollow && distToP >= 2 && distToP <= 3 && !isOffScreen) {
+                    exMustFollow = false;
+                    exFollowTimer = 0;
+                }
+
+                let currentPos = stalker.gx + "_" + stalker.gy;
+                if (currentPos === exLastPos) {
+                    exStuckCounter++;
+                } else {
+                    exStuckCounter = 0;
+                    exLastPos = currentPos;
+                }
+
+                if (exStuckCounter > 35) { 
+                    exWanderCounter = 15;
+                    exStuckCounter = 0;
+                }
+
+                let moved = false;
+
+                if (exWanderCounter > 0) {
+                    exWanderCounter--;
+                    let dirs = [[0,-1], [1,0], [0,1], [-1,0]];
+                    dirs.sort(() => Math.random() - 0.5);
+                    for (let d of dirs) {
+                        let nx = stalker.gx + d[0]; let ny = stalker.gy + d[1];
+                        let localDist = pTile ? Math.abs(nx - pTile.gx) + Math.abs(ny - pTile.gy) : 999;
+                        if (localDist > 1) {
+                            if (isRobo) {
+                                let adjCreep = false;
+                                for(let c of creeps) {
+                                    if(Math.abs(nx - c.gx) + Math.abs(ny - c.gy) <= 2) adjCreep = true;
+                                }
+                                if(adjCreep) continue;
+                            }
+                            if (tryStalkerMove(stalker.tile, stalker.gx, stalker.gy, d[0], d[1])) {
+                                moved = true;
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    let move = getNextStalkerMove(stalker.gx, stalker.gy, pTile, creeps, exMustFollow, stalker.tile);
+                    if (move) {
+                        moved = tryStalkerMove(stalker.tile, stalker.gx, stalker.gy, move.dx, move.dy);
+                    } else {
+                        exWanderCounter = 3;
+                    }
+                }
+            });
+        }
+
+        function update() {
+            if (gameState !== 'PLAYING') return;
+            tick++;
+
+            if (score >= requiredScore && !exitOpen) {
+                exitOpen = true;
+                playSound('win');
+                screenShake = 10;
+            }
+
+            let stalkerExists = false;
+            let stalkerType = null;
+            let pTile = null, px = -1, py = -1;
+            gameMap.forEach(function(tile, key) {
+                if (tile.type === 'PLAYER') {
+                    let underscore = key.indexOf('_');
+                    px = parseInt(key.substring(0, underscore));
+                    py = parseInt(key.substring(underscore + 1));
+                    pTile = tile;
+                }
+                if (tile.type === 'EX' || tile.type === 'ROBOCOP') {
+                    stalkerExists = true;
+                    stalkerType = tile.type;
+                }
+            });
+
+            if (stalkerExists && Math.random() < 0.012 && stalkerQuote.life <= 0 && playerQuote.life <= 0) {
+                let qList = stalkerType === 'ROBOCOP' ? roboQuotes : exQuotes;
+                stalkerQuote.text = qList[Math.floor(Math.random() * qList.length)];
+                stalkerQuote.life = 70;
+                if (Math.random() > 0.4) {
+                    queuedPlayerResponse = playerResponses[Math.floor(Math.random() * playerResponses.length)];
+                } else {
+                    queuedPlayerResponse = "";
+                }
+            }
+            
+            if (stalkerQuote.life > 0) {
+                stalkerQuote.life -= 1;
+                if (stalkerQuote.life === 15 && queuedPlayerResponse !== "") {
+                    playerQuote.text = queuedPlayerResponse;
+                    playerQuote.life = 60;
+                    queuedPlayerResponse = "";
+                }
+            }
+            if (playerQuote.life > 0) playerQuote.life -= 1;
+
+            if (pTile) {
+                let dx = pendingDx; let dy = pendingDy;
+                pendingDx = 0; pendingDy = 0;
+
+                if (dx === 0 && dy === 0) {
+                    if (keys.get('ArrowUp')) dy = -1;
+                    else if (keys.get('ArrowDown')) dy = 1;
+                    else if (keys.get('ArrowLeft')) { dx = -1; facingLeft = true; }
+                    else if (keys.get('ArrowRight')) { dx = 1; facingLeft = false; }
+                }
+
+                if (dx !== 0 && dy !== 0) dy = 0;
+
+                let isSnapping = keys.get(' ') || keys.get('Spacebar');
+
+                if (dx !== 0 || dy !== 0) {
+                    let tx = px + dx, ty = py + dy;
+                    let target = getTile(tx, ty);
+                    
+                    if (target) {
+                        if (target.type === 'CREEP' || target.type === 'C64_MONSTER' || target.type === 'LASER') {
+                            explode(tx, ty);
+                        } else if (target.type === 'EX' || target.type === 'ROBOCOP') {
+                            // Can't move into stalker directly
+                        } else if (isSnapping) {
+                            if (target.type === 'DIRT') {
+                                playSound('dig');
+                                spawnParticles(tx + 0.5, ty + 0.5, '#A0522D', 8, 4);
+                                setTile(tx, ty, { type: 'SPACE', vx: tx, vy: ty, lastTick: tick, cooldown: 0 });
+                            } else if (target.type === 'DIAMOND') {
+                                score++; updateUI(); playSound('diamond');
+                                spawnParticles(tx + 0.5, ty + 0.5, '#00FFFF', 15, 6);
+                                spawnText(tx, ty, "+100", "#00FFFF");
+                                setTile(tx, ty, { type: 'SPACE', vx: tx, vy: ty, lastTick: tick, cooldown: 0 });
+                            }
+                        } else {
+                            if (target.type === 'SPACE' || target.type === 'DIRT') {
+                                if (target.type === 'DIRT') {
+                                    playSound('dig');
+                                    spawnParticles(tx + 0.5, ty + 0.5, '#A0522D', 8, 4);
+                                }
+                                swapTiles(px, py, tx, ty);
+                            } else if (target.type === 'DIAMOND') {
+                                score++; updateUI(); playSound('diamond');
+                                spawnParticles(tx + 0.5, ty + 0.5, '#00FFFF', 15, 6);
+                                spawnText(tx, ty, "+100", "#00FFFF");
+                                swapTiles(px, py, tx, ty);
+                            } else if (target.type === 'BOULDER' && dy === 0) {
+                                let bx = tx + dx, behind = getTile(bx, ty);
+                                if (behind && behind.type === 'SPACE') {
+                                    swapTiles(tx, ty, bx, ty); 
+                                    swapTiles(px, py, tx, ty); 
+                                }
+                            } else if (target.type === 'EXIT' && exitOpen) {
+                                swapTiles(px, py, tx, ty);
+                                if (currentLevel < levels.length) {
+                                    gameState = 'TRANSITION'; 
+                                    playSound('win');
+                                    let status = document.getElementById("status");
+                                    status.innerText = "LEVEL COMPLETE! PRESS SPACE";
+                                    status.style.color = "#0f0";
+                                } else {
+                                    gameState = 'VICTORY'; 
+                                    playSound('win');
+                                    let status = document.getElementById("status");
+                                    status.innerText = "YOU ESCAPED! YOU WIN!";
+                                    status.style.color = "#0f0";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            moveStalkers();
+
+            for (let y = rows - 2; y >= 0; y--) {
+                for (let x = 1; x < cols - 1; x++) {
+                    let t = getTile(x, y);
+                    if (!t || t.lastTick === tick) continue;
+
+                    if (t.type === 'LASER') {
+                        let delta = getDirDelta(t.dir);
+                        let nx = x + delta.x; let ny = y + delta.y;
+                        let nTile = getTile(nx, ny);
+                        if (nTile) {
+                            if (nTile.type === 'SPACE' || nTile.type === 'DIRT') {
+                                if (nTile.type === 'DIRT') spawnParticles(nx + 0.5, ny + 0.5, '#A0522D', 4, 2);
+                                setTile(nx, ny, t);
+                                setTile(x, y, {type: 'SPACE', vx: x, vy: y, cooldown: 0});
+                                t.lastTick = tick;
+                            } else if (nTile.type === 'PLAYER' || nTile.type === 'CREEP' || nTile.type === 'C64_MONSTER' || nTile.type === 'ROBOCOP' || nTile.type === 'EX') {
+                                explode(nx, ny);
+                                setTile(x, y, {type: 'SPACE', vx: x, vy: y, cooldown: 0});
+                            } else if (nTile.type === 'LASER') {
+                                setTile(nx, ny, {type: 'SPACE', vx: nx, vy: ny, cooldown: 0});
+                                setTile(x, y, {type: 'SPACE', vx: x, vy: y, cooldown: 0});
+                                spawnParticles(nx + 0.5, ny + 0.5, '#f00', 10, 5);
+                            } else { 
+                                setTile(x, y, {type: 'SPACE', vx: x, vy: y, cooldown: 0});
+                                spawnParticles(nx + 0.5, ny + 0.5, '#f00', 10, 5);
+                                playSound('thud');
+                            }
+                        }
+                    }
+                    
+                    if (t.type === 'CREEP' || t.type === 'C64_MONSTER') {
+                        let currentDir = t.dir;
+                        let rightDir = (currentDir + 1) % 4;
+                        let leftDir = (currentDir + 3) % 4;
+
+                        let rightDelta = getDirDelta(rightDir);
+                        let frontDelta = getDirDelta(currentDir);
+                        
+                        let rightTile = getTile(x + rightDelta.x, y + rightDelta.y);
+                        let frontTile = getTile(x + frontDelta.x, y + frontDelta.y);
+
+                        if (rightTile && (rightTile.type === 'SPACE' || rightTile.type === 'PLAYER' || rightTile.type === 'ROBOCOP')) {
+                            if (rightTile.type === 'PLAYER' || rightTile.type === 'ROBOCOP') explode(x + rightDelta.x, y + rightDelta.y);
+                            else {
+                                t.dir = rightDir;
+                                swapTiles(x, y, x + rightDelta.x, y + rightDelta.y);
+                            }
+                        } else if (frontTile && (frontTile.type === 'SPACE' || frontTile.type === 'PLAYER' || frontTile.type === 'ROBOCOP')) {
+                            if (frontTile.type === 'PLAYER' || frontTile.type === 'ROBOCOP') explode(x + frontDelta.x, y + frontDelta.y);
+                            else swapTiles(x, y, x + frontDelta.x, y + frontDelta.y);
+                        } else {
+                            t.dir = leftDir;
+                            t.lastTick = tick; 
+                        }
+                    }
+                    
+                    if (t.type === 'BOULDER' || t.type === 'DIAMOND') {
+                        let b = getTile(x, y + 1);
+                        
+                        if (t.falling && b && b.type !== 'SPACE') {
+                            if (b.type === 'PLAYER' || b.type === 'CREEP' || b.type === 'C64_MONSTER' || b.type === 'EX' || b.type === 'ROBOCOP') {
+                                explode(x, y + 1);
+                            } else if (t.type === 'BOULDER') {
+                                playSound('thud');
+                                screenShake = 5;
+                                spawnParticles(x + 0.5, y + 1, '#888', 6, 2);
+                            }
+                        }
+
+                        if (b && b.type === 'SPACE') {
+                            t.falling = true;
+                            swapTiles(x, y, x, y + 1);
+                        } else if (b && (b.type === 'BOULDER' || b.type === 'DIAMOND' || b.type === 'WALL')) {
+                            let left = getTile(x - 1, y), bLeft = getTile(x - 1, y + 1);
+                            let right = getTile(x + 1, y), bRight = getTile(x + 1, y + 1);
+
+                            if (left && left.type === 'SPACE' && bLeft && bLeft.type === 'SPACE') {
+                                t.falling = true; swapTiles(x, y, x - 1, y);
+                            } else if (right && right.type === 'SPACE' && bRight && bRight.type === 'SPACE') {
+                                t.falling = true; swapTiles(x, y, x + 1, y);
+                            } else {
+                                t.falling = false;
+                            }
+                        } else {
+                            t.falling = false;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Draw bubble exclusively in absolute screen-space so it can't clip out of the window bounds
+        function drawBubble(text, screenX, screenY) {
+            let words = text.split(' ');
+            let lines = [];
+            let line = '';
+            ctx.font = 'bold 16px Courier New, Courier, monospace';
+            
+            for(let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                let metrics = ctx.measureText(testLine);
+                if (metrics.width > 200 && n > 0) {
+                    lines.push(line);
+                    line = words[n] + ' ';
+                } else {
+                    line = testLine;
+                }
+            }
+            lines.push(line);
+            
+            let bubbleHeight = lines.length * 20 + 30;
+            let bubbleWidth = 240;
+            
+            // Check if we should draw the bubble above or below the speaker so it stays on screen
+            let drawBelow = screenY < (bubbleHeight + 40);
+            
+            // Clamp horizontal location to screen bounds safely
+            let minX = (bubbleWidth / 2) + 10;
+            let maxX = canvas.width - (bubbleWidth / 2) - 10;
+            let bCX = Math.max(minX, Math.min(screenX, maxX));
+            
+            // Position vertical height based on direction
+            let bCY = drawBelow ? screenY + bubbleHeight/2 + 20 : screenY - bubbleHeight/2 - 20;
+
+            // Give the bubble a slight floating effect
+            let bob = Math.sin(Date.now() / 150) * 4;
+            bCY += bob;
+
+            ctx.save();
+            ctx.fillStyle = '#fff';
+            ctx.strokeStyle = '#f09';
+            ctx.lineWidth = 3;
+            
+            // Draw main bubble rectangle
+            ctx.beginPath();
+            ctx.roundRect(bCX - bubbleWidth/2, bCY - bubbleHeight/2, bubbleWidth, bubbleHeight, 15);
+            ctx.fill(); ctx.stroke();
+            
+            // Draw tail pointing to speaker
+            ctx.beginPath();
+            if (drawBelow) {
+                ctx.moveTo(bCX - 10, bCY - bubbleHeight/2);
+                ctx.lineTo(bCX + 10, bCY - bubbleHeight/2);
+                ctx.lineTo(screenX, screenY);
+            } else {
+                ctx.moveTo(bCX - 10, bCY + bubbleHeight/2);
+                ctx.lineTo(bCX + 10, bCY + bubbleHeight/2);
+                ctx.lineTo(screenX, screenY);
+            }
+            ctx.fill(); ctx.stroke();
+            
+            // Erase the tail stroke line inside the bubble
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            if (drawBelow) {
+                ctx.moveTo(bCX - 9, bCY - bubbleHeight/2 - 2);
+                ctx.lineTo(bCX + 9, bCY - bubbleHeight/2 - 2);
+                ctx.lineTo(screenX, screenY + 2);
+            } else {
+                ctx.moveTo(bCX - 9, bCY + bubbleHeight/2 + 2);
+                ctx.lineTo(bCX + 9, bCY + bubbleHeight/2 + 2);
+                ctx.lineTo(screenX, screenY - 2);
+            }
+            ctx.fill();
+            
+            // Draw text lines
+            ctx.fillStyle = '#000';
+            ctx.textAlign = 'center';
+            let textStartY = bCY - bubbleHeight/2 + 25;
+            for(let i=0; i<lines.length; i++) {
+                ctx.fillText(lines[i].trim(), bCX, textStartY + (i*20));
+            }
+            
+            // Spacebar pulsating prompt
+            ctx.fillStyle = '#f09';
+            ctx.font = 'bold 12px Courier';
+            let pulse = Math.abs(Math.sin(Date.now() / 200));
+            ctx.globalAlpha = 0.5 + pulse * 0.5;
+            ctx.fillText("SPACEBAR ->", bCX, bCY + bubbleHeight/2 - 8);
+            
+            ctx.restore();
+        }
+
+        function render() {
+            time += 0.05;
+
+            let targetPVisX = pVisX;
+            let targetPVisY = pVisY;
+
+            if (gameState === 'DIALOG') {
+                let currentSpeaker = dialogs[dialogIndex].speaker;
+                gameMap.forEach(function(tile) {
+                    if (tile.type === currentSpeaker) {
+                        targetPVisX = tile.vx;
+                        targetPVisY = tile.vy;
+                    }
+                });
+            } else {
+                gameMap.forEach(function(tile) {
+                    if (tile.type === 'PLAYER') {
+                        targetPVisX = tile.vx;
+                        targetPVisY = tile.vy;
+                    }
+                });
+            }
+
+            pVisX += (targetPVisX - pVisX) * 0.2;
+            pVisY += (targetPVisY - pVisY) * 0.2;
+
+            let targetCamX = (pVisX * ts) - (canvas.width / 2) + (ts / 2);
+            let targetCamY = (pVisY * ts) - (canvas.height / 2) + (ts / 2);
+
+            let maxCamX = (cols * ts) - canvas.width;
+            let maxCamY = (rows * ts) - canvas.height;
+            
+            if (targetCamX < 0) targetCamX = 0;
+            if (targetCamX > maxCamX) targetCamX = maxCamX;
+            if (targetCamY < 0) targetCamY = 0;
+            if (targetCamY > maxCamY) targetCamY = maxCamY;
+
+            camX += (targetCamX - camX) * 0.1;
+            camY += (targetCamY - camY) * 0.1;
+
+            ctx.save();
+            
+            if (screenShake > 0) {
+                let sx = (Math.random() - 0.5) * screenShake;
+                let sy = (Math.random() - 0.5) * screenShake;
+                ctx.translate(sx, sy);
+                screenShake *= 0.8;
+                if (screenShake < 0.5) screenShake = 0;
+            }
+
+            ctx.fillStyle = '#0a0a10';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Shift camera world space
+            ctx.translate(-Math.floor(camX), -Math.floor(camY));
+
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    let tile = getTile(x, y);
+                    if (!tile || tile.type === 'SPACE') continue;
+                    
+                    let drawX = tile.vx * ts;
+                    let drawY = tile.vy * ts;
+                    
+                    if (drawX < camX - ts || drawX > camX + canvas.width + ts || 
+                        drawY < camY - ts || drawY > camY + canvas.height + ts) {
+                        tile.vx += (x - tile.vx) * 0.45;
+                        tile.vy += (y - tile.vy) * 0.45;
+                        continue;
+                    }
+
+                    tile.vx += (x - tile.vx) * 0.45;
+                    tile.vy += (y - tile.vy) * 0.45;
+
+                    let cx = tile.vx * ts;
+                    let cy = tile.vy * ts;
+
+                    if (tile.type === 'WALL') {
+                        ctx.fillStyle = '#223'; ctx.fillRect(cx, cy, ts, ts);
+                        ctx.fillStyle = '#446';
+                        ctx.fillRect(cx+2, cy+2, ts-4, ts-4);
+                        ctx.fillStyle = '#668';
+                        ctx.fillRect(cx+4, cy+4, ts-8, ts-8);
+                    } else if (tile.type === 'DIRT') {
+                        ctx.fillStyle = '#3a2411'; ctx.fillRect(cx, cy, ts, ts);
+                        ctx.fillStyle = '#1e1005';
+                        ctx.fillRect(cx, cy, ts, 2); ctx.fillRect(cx, cy, 2, ts);
+                        ctx.fillStyle = '#5c3a1a';
+                        ctx.fillRect(cx + 6, cy + 6, 4, 4);
+                        ctx.fillRect(cx + 20, cy + 18, 4, 4);
+                        ctx.fillRect(cx + 10, cy + 24, 6, 4);
+                    } else if (tile.type === 'LASER') {
+                        ctx.fillStyle = '#f00';
+                        ctx.shadowBlur = 15; ctx.shadowColor = '#f00';
+                        if (tile.dir === 0 || tile.dir === 2) {
+                            ctx.fillRect(cx + 14, cy + 2, 4, 28);
+                            ctx.fillStyle = '#fff'; ctx.fillRect(cx + 15, cy + 4, 2, 24);
+                        } else {
+                            ctx.fillRect(cx + 2, cy + 14, 28, 4);
+                            ctx.fillStyle = '#fff'; ctx.fillRect(cx + 4, cy + 15, 24, 2);
+                        }
+                        ctx.shadowBlur = 0;
+                    } else if (tile.type === 'BOULDER') {
+                        let rot = tile.vx * Math.PI;
+                        ctx.save();
+                        ctx.translate(cx + 16, cy + 16);
+                        ctx.rotate(rot);
+                        
+                        ctx.shadowBlur = 10; ctx.shadowColor = '#000';
+                        ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); 
+                        ctx.fillStyle = '#555'; ctx.fill();
+                        
+                        ctx.shadowBlur = 0;
+                        ctx.beginPath(); ctx.arc(-4, -4, 6, 0, Math.PI * 2); 
+                        ctx.fillStyle = '#888'; ctx.fill();
+                        ctx.beginPath(); ctx.arc(4, 4, 3, 0, Math.PI * 2); 
+                        ctx.fillStyle = '#444'; ctx.fill();
+                        ctx.restore();
+                    } else if (tile.type === 'DIAMOND') {
+                        let floatY = Math.sin(time + x + y) * 3;
+                        ctx.save();
+                        ctx.translate(cx + 16, cy + 16 + floatY);
+                        
+                        ctx.shadowBlur = 15; ctx.shadowColor = '#0ff';
+                        ctx.fillStyle = '#0ff';
+                        ctx.beginPath();
+                        ctx.moveTo(0, -12); ctx.lineTo(12, 0);
+                        ctx.lineTo(0, 12); ctx.lineTo(-12, 0);
+                        ctx.fill();
+                        
+                        ctx.fillStyle = '#fff';
+                        ctx.beginPath();
+                        ctx.moveTo(0, -6); ctx.lineTo(4, 0);
+                        ctx.lineTo(0, 6); ctx.lineTo(-4, 0);
+                        ctx.fill();
+                        ctx.restore();
+                    } else if (tile.type === 'EXIT') {
+                        ctx.fillStyle = exitOpen ? '#f0f' : '#222';
+                        ctx.fillRect(cx + 2, cy + 2, 28, 28);
+                        if (exitOpen) {
+                            ctx.shadowBlur = 20; ctx.shadowColor = '#f0f';
+                            ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Courier';
+                            ctx.textAlign = 'center';
+                            let s = 1 + Math.sin(time * 5) * 0.1;
+                            ctx.save();
+                            ctx.translate(cx + 16, cy + 18);
+                            ctx.scale(s, s);
+                            ctx.fillText("EXIT", 0, 0);
+                            ctx.restore();
+                        }
+                    } else if (tile.type === 'C64_MONSTER') {
+                        ctx.save();
+                        ctx.translate(cx + 16, cy + 16);
+                        
+                        let wobble = Math.sin(time * 4 + x) * 0.15;
+                        ctx.rotate(wobble);
+                        let legShift = Math.sin(time * 8) * 3;
+
+                        ctx.fillStyle = '#dcb'; 
+                        ctx.fillRect(-12, -12, 24, 20);
+                        
+                        ctx.fillStyle = '#333';
+                        ctx.fillRect(-8, -8, 16, 12);
+                        
+                        ctx.fillStyle = '#f00';
+                        ctx.fillRect(-6, -6, 3, 2);
+                        ctx.fillRect(3, -6, 3, 2);
+                        
+                        ctx.strokeStyle = '#fff';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.arc(-2, 0, 2.5, Math.PI * 0.25, Math.PI * 1.75, false);
+                        ctx.stroke();
+                        
+                        ctx.fillStyle = '#f00'; ctx.fillRect(0, -1.5, 3, 1);
+                        ctx.fillStyle = '#00f'; ctx.fillRect(0, 0.5, 3, 1);
+                        
+                        ctx.fillStyle = '#555';
+                        ctx.fillRect(-8 + legShift, 8, 4, 6);
+                        ctx.fillRect(4 - legShift, 8, 4, 6);
+
+                        ctx.restore();
+                    } else if (tile.type === 'CREEP') {
+                        ctx.save();
+                        ctx.translate(cx + 16, cy + 16);
+                        
+                        let wobble = Math.sin(time * 4 + x) * 0.15;
+                        ctx.rotate(wobble);
+                        
+                        let isFlashing = Math.sin(time * 3 + y) > 0.8;
+
+                        ctx.fillStyle = '#6e4420'; 
+                        ctx.fillRect(-10, -6, 20, 20);
+                        
+                        ctx.fillStyle = '#4a2c13';
+                        ctx.fillRect(-10, -8, 20, 4);
+
+                        if (isFlashing) {
+                            ctx.fillStyle = '#111'; ctx.fillRect(-4, 0, 8, 12);
+                            ctx.fillStyle = '#f09'; 
+                            ctx.shadowBlur = 10; ctx.shadowColor = '#f09';
+                            ctx.beginPath(); ctx.arc(-2, 4, 2, 0, Math.PI * 2); ctx.fill();
+                            ctx.beginPath(); ctx.arc(2, 4, 2, 0, Math.PI * 2); ctx.fill();
+                            ctx.beginPath(); ctx.moveTo(-4, 5); ctx.lineTo(4, 5); ctx.lineTo(0, 9); ctx.fill();
+                            ctx.shadowBlur = 0;
+                            ctx.fillStyle = '#6e4420';
+                            ctx.fillRect(-16, -2, 6, 16);
+                            ctx.fillRect(10, -2, 6, 16);
+                        } else {
+                            ctx.fillStyle = '#3a2411'; ctx.fillRect(-1, 0, 2, 14);
+                        }
+
+                        ctx.fillStyle = '#fca'; ctx.fillRect(-6, -16, 12, 10);
+                        
+                        ctx.fillStyle = '#000'; ctx.fillRect(-8, -14, 16, 4);
+                        ctx.fillStyle = '#fff'; ctx.fillRect(-6, -14, 2, 1); ctx.fillRect(2, -14, 2, 1);
+
+                        ctx.fillStyle = '#333';
+                        let browY = isFlashing ? -18 : -16;
+                        ctx.fillRect(-7, browY, 5, 2); ctx.fillRect(2, browY, 5, 2);
+
+                        ctx.fillStyle = '#000'; ctx.fillRect(-4, -8, 8, 1);
+                        if (isFlashing) { ctx.fillStyle = '#f00'; ctx.fillRect(-2, -7, 4, 2); }
+
+                        let legShift = Math.sin(time * 8) * 3;
+                        ctx.fillStyle = '#111';
+                        ctx.fillRect(-6 + legShift, 14, 4, 4);
+                        ctx.fillRect(2 - legShift, 14, 4, 4);
+
+                        ctx.restore();
+                    } else if (tile.type === 'EX') {
+                        ctx.save();
+                        ctx.translate(cx + 16, cy + 16);
+                        
+                        let isMoving = Math.abs(tile.vx - x) > 0.05 || Math.abs(tile.vy - y) > 0.05;
+                        let anim = isMoving ? time * 10 : 0;
+                        
+                        ctx.rotate(Math.sin(anim) * 0.1);
+                        
+                        ctx.fillStyle = '#00f'; 
+                        let lx = isMoving ? Math.sin(anim) * 4 : 2;
+                        ctx.fillRect(-4, 6, 3, 8 + lx);
+                        ctx.fillRect(1, 6, 3, 8 - lx);
+                        
+                        ctx.fillStyle = '#ddd'; 
+                        ctx.fillRect(-6, -4, 12, 12);
+                        
+                        ctx.fillStyle = '#fca';
+                        ctx.fillRect(-10, -4, 4, 8);
+                        ctx.fillRect(6, -4, 4, 8);
+                        
+                        ctx.strokeStyle = '#fd0'; ctx.lineWidth = 2;
+                        ctx.beginPath(); ctx.arc(0, -2, 4, 0, Math.PI); ctx.stroke();
+
+                        ctx.fillStyle = '#fca';
+                        ctx.fillRect(-5, -14, 10, 10);
+                        
+                        ctx.fillStyle = '#f00';
+                        ctx.fillRect(-6, -16, 12, 4);
+                        ctx.fillRect(6, -16, 4, 3); 
+                        
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(-3, -11, 2, 1);
+                        ctx.fillRect(1, -11, 2, 1);
+                        
+                        ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(-4, -13); ctx.lineTo(-1, -11); ctx.stroke();
+                        ctx.moveTo(4, -13); ctx.lineTo(1, -11); ctx.stroke();
+                        
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(-2, -7, 4, 1);
+
+                        if (stalkerQuote.life > 0 && gameState === 'PLAYING') {
+                            ctx.save();
+                            ctx.translate(0, -32 - Math.sin(time*5)*2);
+                            ctx.font = 'bold 11px Courier';
+                            let mWidth = ctx.measureText(stalkerQuote.text).width + 16;
+                            
+                            ctx.fillStyle = '#fff';
+                            ctx.strokeStyle = '#f00';
+                            ctx.lineWidth = 2;
+                            ctx.beginPath();
+                            ctx.roundRect(-mWidth/2, -14, mWidth, 18, 5);
+                            ctx.fill(); ctx.stroke();
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(-5, 4); ctx.lineTo(5, 4); ctx.lineTo(0, 10);
+                            ctx.fill(); ctx.stroke();
+                            
+                            ctx.fillStyle = '#000';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(stalkerQuote.text, 0, 0);
+                            ctx.restore();
+                        }
+
+                        ctx.restore();
+                    } else if (tile.type === 'ROBOCOP') {
+                        ctx.save();
+                        ctx.translate(cx + 16, cy + 16);
+                        
+                        let isMoving = Math.abs(tile.vx - x) > 0.05 || Math.abs(tile.vy - y) > 0.05;
+                        let anim = isMoving ? time * 10 : 0;
+                        
+                        ctx.rotate(Math.sin(anim) * 0.05);
+                        
+                        ctx.fillStyle = '#444'; 
+                        let lx = isMoving ? Math.sin(anim) * 4 : 2;
+                        ctx.fillRect(-5, 6, 4, 8 + lx);
+                        ctx.fillRect(1, 6, 4, 8 - lx);
+                        
+                        ctx.fillStyle = '#99a'; 
+                        ctx.fillRect(-7, -4, 14, 12);
+                        ctx.fillStyle = '#ccd'; 
+                        ctx.fillRect(-5, -4, 10, 10);
+                        
+                        ctx.fillStyle = '#444';
+                        ctx.fillRect(-11, -4, 4, 9);
+                        ctx.fillRect(7, -4, 4, 9);
+                        
+                        ctx.fillStyle = '#ccd';
+                        ctx.fillRect(-12, -5, 6, 4);
+                        ctx.fillRect(6, -5, 6, 4);
+
+                        ctx.fillStyle = '#99a';
+                        ctx.fillRect(-5, -14, 10, 10);
+                        ctx.fillStyle = '#ccd';
+                        ctx.fillRect(-4, -14, 8, 3);
+                        
+                        ctx.fillStyle = '#111';
+                        ctx.fillRect(-6, -11, 12, 4);
+                        
+                        let scanX = Math.sin(time * 4) * 4;
+                        ctx.fillStyle = '#f00';
+                        ctx.shadowBlur = 5; ctx.shadowColor = '#f00';
+                        ctx.fillRect(-2 + scanX, -10, 4, 2);
+                        ctx.shadowBlur = 0;
+                        
+                        ctx.fillStyle = '#fca';
+                        ctx.fillRect(-3, -7, 6, 3);
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(-1, -6, 2, 1);
+
+                        if (stalkerQuote.life > 0 && gameState === 'PLAYING') {
+                            ctx.save();
+                            ctx.translate(0, -32 - Math.sin(time*5)*2);
+                            ctx.font = 'bold 11px Courier';
+                            let mWidth = ctx.measureText(stalkerQuote.text).width + 16;
+                            
+                            ctx.fillStyle = '#fff';
+                            ctx.strokeStyle = '#555';
+                            ctx.lineWidth = 2;
+                            ctx.beginPath();
+                            ctx.roundRect(-mWidth/2, -14, mWidth, 18, 5);
+                            ctx.fill(); ctx.stroke();
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(-5, 4); ctx.lineTo(5, 4); ctx.lineTo(0, 10);
+                            ctx.fill(); ctx.stroke();
+                            
+                            ctx.fillStyle = '#000';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(stalkerQuote.text, 0, 0);
+                            ctx.restore();
+                        }
+
+                        ctx.restore();
+                    } else if (tile.type === 'PLAYER') {
+                        ctx.save();
+                        ctx.translate(cx + 16, cy + 16);
+                        
+                        let isMoving = Math.abs(tile.vx - x) > 0.05 || Math.abs(tile.vy - y) > 0.05;
+                        if (isMoving) playerWalkAnim += 0.4;
+                        else playerWalkAnim += Math.sin(playerWalkAnim) * -0.2;
+
+                        if (facingLeft) ctx.scale(-1, 1);
+
+                        if (gameState === 'GAME_OVER') {
+                            ctx.rotate(Math.PI / 2);
+                        } else if (isMoving) {
+                            ctx.rotate(Math.sin(playerWalkAnim) * 0.1);
+                        } else {
+                            ctx.scale(1 + Math.sin(time * 3) * 0.02, 1 - Math.sin(time * 3) * 0.02);
+                        }
+
+                        let l1x = isMoving ? Math.sin(playerWalkAnim) * 4 : 0;
+                        let l1y = isMoving ? Math.max(0, -Math.sin(playerWalkAnim)) * 4 : 0;
+                        let l2x = isMoving ? Math.sin(playerWalkAnim + Math.PI) * 4 : 0;
+                        let l2y = isMoving ? Math.max(0, -Math.sin(playerWalkAnim + Math.PI)) * 4 : 0;
+
+                        let bodyBounce = isMoving ? Math.abs(Math.sin(playerWalkAnim)) * 1.5 : 0;
+
+                        ctx.fillStyle = '#fca'; ctx.fillRect(-2 + l2x, 6, 4, 6 - l2y);
+                        ctx.fillStyle = '#fff'; ctx.fillRect(-3 + l2x, 12 - l2y, 5, 4);
+
+                        ctx.fillStyle = '#fca'; ctx.fillRect(-2 + l1x, 6, 4, 6 - l1y);
+                        ctx.fillStyle = '#fff'; ctx.fillRect(-3 + l1x, 12 - l1y, 5, 4);
+
+                        ctx.translate(0, -bodyBounce);
+
+                        ctx.fillStyle = '#fca'; ctx.fillRect(-4, 0, 3, 6 + l2x);
+
+                        ctx.fillStyle = '#f09'; 
+                        let sway = isMoving ? Math.sin(playerWalkAnim)*4 : Math.sin(time*2)*2;
+                        ctx.fillRect(-12 - sway, -4, 6, 14);
+
+                        ctx.fillStyle = '#0ff'; ctx.fillRect(-4, -2, 8, 5); 
+                        ctx.fillStyle = '#fca'; ctx.fillRect(-3, 3, 6, 2);  
+                        ctx.fillStyle = '#90f'; ctx.fillRect(-4, 5, 8, 3);  
+
+                        ctx.fillStyle = '#fca'; ctx.fillRect(-5, -10, 10, 9);
+                        
+                        ctx.fillStyle = '#f09';
+                        ctx.fillRect(-6, -12, 12, 4);
+                        ctx.fillRect(-6, -8, 3, 6);
+
+                        ctx.fillStyle = '#0ff'; ctx.fillRect(-6, -10, 12, 2);
+
+                        if (gameState === 'GAME_OVER') {
+                            ctx.fillStyle = '#000';
+                            ctx.fillRect(-1, -7, 2, 2); ctx.fillRect(3, -7, 2, 2);
+                        } else {
+                            if (Math.sin(time * 5) > 0.95) {
+                                ctx.fillStyle = '#000'; 
+                                ctx.fillRect(-1, -6, 2, 1); ctx.fillRect(3, -6, 2, 1);
+                            } else {
+                                ctx.fillStyle = '#fff'; 
+                                ctx.fillRect(-2, -7, 3, 3); ctx.fillRect(2, -7, 3, 3);
+                                ctx.fillStyle = '#0cf'; 
+                                ctx.fillRect(-1, -7, 2, 2); ctx.fillRect(3, -7, 2, 2);
+                            }
+                        }
+
+                        if (playerQuote.life > 0 && gameState === 'PLAYING') {
+                            ctx.save();
+                            if (facingLeft) ctx.scale(-1, 1); 
+                            ctx.translate(0, -32 - Math.sin(time*5)*2);
+                            ctx.font = 'bold 11px Courier';
+                            let mWidth = ctx.measureText(playerQuote.text).width + 16;
+                            
+                            ctx.fillStyle = '#fff';
+                            ctx.strokeStyle = '#0ff';
+                            ctx.lineWidth = 2;
+                            ctx.beginPath();
+                            ctx.roundRect(-mWidth/2, -14, mWidth, 18, 5);
+                            ctx.fill(); ctx.stroke();
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(-5, 4); ctx.lineTo(5, 4); ctx.lineTo(0, 10);
+                            ctx.fill(); ctx.stroke();
+                            
+                            ctx.fillStyle = '#000';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(playerQuote.text, 0, 0);
+                            ctx.restore();
+                        }
+
+                        ctx.fillStyle = '#fca'; ctx.fillRect(1, 0, 3, 6 + l1x);
+
+                        ctx.restore();
+                    }
+                }
+            }
+
+            // Restore the context back to 0,0 screen-space so UI elements don't move with the camera
+            ctx.restore();
+
+            // Particles
+            ctx.save();
+            ctx.translate(-Math.floor(camX), -Math.floor(camY));
+            ctx.globalCompositeOperation = 'screen';
+            particles.forEach(function(p) {
+                p.x += p.vx; p.y += p.vy;
+                p.vy += 0.1; 
+                p.life -= p.decay;
+                
+                if (p.life <= 0) {
+                    particles.delete(p);
+                } else {
+                    ctx.globalAlpha = p.life;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x * ts, p.y * ts, p.size, p.size);
+                }
+            });
+            ctx.globalAlpha = 1.0;
+            ctx.globalCompositeOperation = 'source-over';
+
+            floatingTexts.forEach(function(ft) {
+                ft.y -= 0.05;
+                ft.life -= 0.02;
+                if (ft.life <= 0) {
+                    floatingTexts.delete(ft);
+                } else {
+                    ctx.globalAlpha = ft.life;
+                    ctx.fillStyle = ft.color;
+                    ctx.font = 'bold 16px Courier';
+                    ctx.shadowBlur = 5; ctx.shadowColor = ft.color;
+                    ctx.fillText(ft.text, ft.x * ts, ft.y * ts);
+                }
+            });
+            ctx.globalAlpha = 1.0; ctx.shadowBlur = 0;
+            ctx.restore();
+
+            // Draw Dialog UI (Always draws over the screen bounds)
+            if (gameState === 'DIALOG') {
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                let current = dialogs[dialogIndex];
+                let speakerWorldX = 0, speakerWorldY = 0;
+
+                gameMap.forEach(v => {
+                    if (v.type === current.speaker) {
+                        speakerWorldX = (v.vx * ts) + ts/2;
+                        speakerWorldY = (v.vy * ts) - 10;
+                    }
+                });
+
+                // Calculate screen position from world position for the bubble tailor tip
+                let screenX = speakerWorldX - Math.floor(camX);
+                let screenY = speakerWorldY - Math.floor(camY);
+
+                drawBubble(current.text, screenX, screenY);
+            }
+        }
+
+        let lastLogicTime = 0;
+        const TICK_RATE = 130; 
+        
+        function gameLoop(timestamp) {
+            if (!lastLogicTime) lastLogicTime = timestamp;
+            
+            while (timestamp - lastLogicTime >= TICK_RATE) {
+                update();
+                lastLogicTime += TICK_RATE;
+            }
+            
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        initGame();
+        requestAnimationFrame(gameLoop);
+
+    </script>
+</body>
+</html>
