@@ -55,7 +55,7 @@
             align-items: center;
             width: 800px;
             margin-bottom: 15px;
-            font-size: 26px;
+            font-size: 20px;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -68,10 +68,11 @@
         .ex-color { color: #f00; }
         .robo-color { color: #aaa; text-shadow: 0 0 5px #f00; }
         .crystal-color { color: #a0a; text-shadow: 0 0 5px #f0f; }
+        .coal-color { color: #fa0; text-shadow: 0 0 5px #f00; }
         #status { text-shadow: 0 0 15px currentColor; }
         
         #instructions {
-            margin-top: 20px;
+            margin-top: 15px;
             color: #aaa;
             text-align: center;
             font-size: 14px;
@@ -88,7 +89,12 @@
 <body>
 
     <div id="ui">
-        <div>💎 <span id="score" class="highlight">0</span> / <span id="required">30</span></div>
+        <div id="score-container">💎 <span id="score" class="highlight">0</span> / <span id="required">30</span></div>
+        <div id="coal-container" style="display:none; font-size: 16px;">
+            <span class="coal-color">🧱 COAL:</span> <span id="coal-inv" class="highlight">0</span>/3 &nbsp;|&nbsp;
+            <span class="coal-color">FURNACE:</span> <span id="coal-dep" class="highlight">0</span> / <span id="coal-req">25</span> &nbsp;|&nbsp;
+            <span style="color:#0ff;">⚡ ATARI ENERGY:</span> <span id="atari-energy" style="color:#0f0;">100%</span>
+        </div>
         <div id="status"></div>
     </div>
 
@@ -97,10 +103,9 @@
     </div>
 
     <div id="instructions">
-        <strong>CLICK HERE TO ENABLE AUDIO</strong><br>
-        <strong>ARROWS:</strong> Move & Dig &nbsp;|&nbsp; <strong>SPACE + ARROW:</strong> Snap Grab<br>
-        Avoid the <span class="ex-color">EX-BOYFRIEND (X)</span> AND <span class="robo-color">ROBOCOP (R)</span>.<br>
-        Don't let them grab the <span class="crystal-color">BLACK CRYSTALS (B)</span> or they will drain your points! Deny them by grabbing them first!
+        <strong>CLICK TO ENABLE AUDIO</strong> | <strong>ARROWS:</strong> Move/Dig | <strong>SPACE + ARROW:</strong> Snap Grab<br>
+        <em>BONUS LEVEL:</em> Carry <span class="coal-color">COAL (W)</span> chunks to the massive ATARI! Avoid Glitches! <br>
+        <strong>MASH SPACEBAR 15x</strong> if you get trapped to trigger a huge blast!
     </div>
 
     <script>
@@ -177,6 +182,20 @@
                 gain.gain.setValueAtTime(0.1, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                 osc.start(now); osc.stop(now + 0.15);
+            } else if (type === 'powerup') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(100, now);
+                osc.frequency.linearRampToValueAtTime(800, now + 0.4);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            } else if (type === 'glitch') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100 + Math.random()*800, now);
+                osc.frequency.setValueAtTime(100 + Math.random()*800, now + 0.05);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
             }
         }
 
@@ -351,7 +370,7 @@
                     { speaker: 'ROBOCOP', text: "ERROR. PARSING SARCASM. PROCEEDING WITH JOINT ATTACK." }
                 ]
             },
-            // LEVEL 4 (OUTRO DIALOG SCENE)
+            // LEVEL 4 (DIALOG WITH GLITCH)
             {
                 requiredScore: 0,
                 map: [
@@ -399,15 +418,125 @@
                 dialogs: [
                     { speaker: 'ROBOCOP', text: "MY SENSORS INDICATE FURTHER HOSTILITIES ARE ILLOGICAL. TRUCE?" },
                     { speaker: 'EX', text: "Fine... I'm out of crystals anyway. So... we make a great team, right babe?" },
-                    { speaker: 'PLAYER', text: "c64, is not so bad, but we are NOT getting back together, Brad. I only date 16-bit now." },
+                    { speaker: 'PLAYER', text: "C64 is not so bad, but we are NOT getting back together, Brad. I only date 16-bit now." },
                     { speaker: 'EX', text: "Ouch. Right in the motherboard." },
                     { speaker: 'ROBOCOP', text: "EMOTIONAL DAMAGE DETECTED. DO YOU REQUIRE BURN HEAL, BRAD?" },
-                    { speaker: 'PLAYER', text: "Truce accepted. Game Over!" }
+                    { speaker: 'ROBOCOP', text: "WARNING... SYSTEM ANOMALY DETECTED...", glitch: true },
+                    { speaker: 'EX', text: "Whoa! What just happened?! Did the screen just tear?" },
+                    { speaker: 'PLAYER', text: "We have a serious problem. The Atari environment we are in right now has a massive energy leak!" },
+                    { speaker: 'EX', text: "A leak? Well, Atari hardware always was flimsy..." },
+                    { speaker: 'PLAYER', text: "No, idiot! It's because there are too many Commodore assets loaded into memory! The system is crashing!" },
+                    { speaker: 'ROBOCOP', text: "DIRECTIVE: PREVENT CRITICAL CORE MELTDOWN." },
+                    { speaker: 'PLAYER', text: "Exactly. We need to feed the Atari Furnace with raw processing fuel... Coal!" },
+                    { speaker: 'EX', text: "Wait, the Atari 8-bit runs on COAL?!" },
+                    { speaker: 'PLAYER', text: "It's a retro-steam-punk modification! I can only carry 3 pieces of coal at a time." },
+                    { speaker: 'PLAYER', text: "I need to gather them and throw them into the massive furnace before the system runs out of power!" },
+                    { speaker: 'EX', text: "We will cheer you on from a safe distance! Team Atari... I guess!" }
+                ]
+            },
+            // LEVEL 5 (BONUS COAL MINE LEVEL)
+            {
+                requiredScore: 0, 
+                map: [
+                    "############################################################",
+                    "#E.........................................................#",
+                    "#.#####.#####.O.O..W.W.............................M.......#",
+                    "#.......#...#......W.W.O...................................#",
+                    "#...W...#...#.###########.......O.O.......W...W............#",
+                    "#...W.......#...................O.O.....#########...O.O....#",
+                    "#.#####.#####...........W...O.............#...#.....O.O....#",
+                    "#...M...................W...W..O..........#...#...W........#",
+                    "#.........W......O.O.W.........W...W......#...#...W........#",
+                    "#.........W......O.O.W...C.....W...W...............C.......#",
+                    "#######################.##################...###############",
+                    "#.......#.......#..........................................#",
+                    "#.......#.......#..........W.O.......O........W...W........#",
+                    "#.......#...W...#..........W.O.......O........W...W........#",
+                    "#...........W...#..........W.O.O.....O........W.O.W........#",
+                    "#...........W...#..............O.....O..........O..........#",
+                    "#.###########.###.#######......O.....O.....................#",
+                    "#.......................#......O...........................#",
+                    "#....O.......O...O......#...W..O.........M.................#",
+                    "#....W.......O...O...W..#...W..O...........................#",
+                    "#...C................W..#...W..............................#",
+                    "#............W.......W..#...................O.O...O........#",
+                    "################.########......M............O.O...O........#",
+                    "#............W..............................W.....W........#",
+                    "#............W..............................W.....W...C....#",
+                    "#..M.......................................................#",
+                    "#.############...########.#####################.############",
+                    "#..........................................................#",
+                    "#......O.......O...............W...W.......................#",
+                    "#......O.......O...............W...W................O......#",
+                    "#..............................W...W................O......#",
+                    "#..AAAAAAAAAA..................W...W................O...W..#",
+                    "#..AAAAAAAAAA......O...O.......................M........W..#",
+                    "#..AAAAAAAAAA......W...W...........O.O.W.W.W............W..#",
+                    "#..AAAAAAAAAA......W...W...........O.O.W.W.W........C......#",
+                    "#..AAAAAAAAAA..@.X.R.W...W...........O.O.W.W.W.............#",
+                    "#..AAAAAAAAAA......W...W...................................#",
+                    "#..AAAAAAAAAA..............................................#",
+                    "############################################################"
+                ],
+                dialogs: [] 
+            },
+            // LEVEL 6 (FINAL OUTRO)
+            {
+                requiredScore: 0,
+                map: [
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "############################################################",
+                    "#..AAAAAAAAAA..............................................#",
+                    "#..AAAAAAAAAA..............................................#",
+                    "#..AAAAAAAAAA..............................................#",
+                    "#..AAAAAAAAAA..............................................#",
+                    "#..AAAAAAAAAA..@...X...R...................................#",
+                    "#..AAAAAAAAAA..............................................#",
+                    "#..AAAAAAAAAA..............................................#",
+                    "############################################################"
+                ],
+                dialogs: [
+                    { speaker: 'PLAYER', text: "Phew... The system has stabilized. Meltdown averted." },
+                    { speaker: 'EX', text: "I gotta admit, watching you shovel coal into a computer was pretty impressive." },
+                    { speaker: 'ROBOCOP', text: "ATARI POWER LEVELS OPTIMAL. COMMODORE ASSETS QUARANTINED." },
+                    { speaker: 'PLAYER', text: "Thanks. Maybe you two aren't completely useless after all." },
+                    { speaker: 'EX', text: "Does this mean we can get back together?" },
+                    { speaker: 'PLAYER', text: "...No. But I won't drop a 10-ton boulder on you next time I see you." },
+                    { speaker: 'ROBOCOP', text: "A REASONABLE COMPROMISE. GAME OVER." }
                 ]
             }
         ];
 
-        // START AT LEVEL 1
+        // START AT LEVEL 4 FOR TESTING (Change to 1 to play full game)
         let currentLevel = 1; 
 
         let levelStr = "";
@@ -423,6 +552,7 @@
         let playerWalkAnim = 0;
 
         let screenShake = 0;
+        let glitchTimer = 0;
         let time = 0;
         
         let camX = 0;
@@ -435,7 +565,6 @@
         let exitOpen = false;
         let tick = 0;
 
-        // Level 3 Respawns
         let exRespawns = 0;
         let roboRespawns = 0;
         let pendingRespawns = [];
@@ -447,7 +576,18 @@
         let exFollowTimer = 0;
         let exMustFollow = false;
         
-        let stalkerQuote = { text: "", life: 0 };
+        // Bonus Level Variables
+        let playerCoal = 0;
+        let totalDepositedCoal = 0;
+        let requiredCoal = 0;
+        let atariEnergy = 1000;
+
+        // Spacebar explosion vars
+        let heroIdleTimer = 0;
+        let spaceMashCount = 0;
+        let spaceMashTimer = 0;
+
+        let stalkerQuote = { text: "", life: 0, speaker: "" };
         let playerQuote = { text: "", life: 0 };
         let queuedPlayerResponse = "";
         
@@ -483,6 +623,21 @@
             "Your battery is dying!"
         ];
 
+        const exPanicQuotes = [
+            "Oh no we are going to die!", 
+            "Please help me Atari Girl...", 
+            "What would happen to my Commodore?!", 
+            "Ahhhh! Glitches everywhere!", 
+            "I'm too 8-bit to die!"
+        ];
+
+        const roboGlitchQuotes = [
+            "GLITCH DETECTED. PURGING.", 
+            "EAT LASER, SYSTEM ERROR.", 
+            "MAINTAINING ATARI CORE.", 
+            "BUGS WILL BE TERMINATED."
+        ];
+
         const playerRespawnQuotes = [
             "Ugh, let's try that again.",
             "Insert Coin to Continue...",
@@ -494,6 +649,33 @@
         let gameState = 'DIALOG';
         let dialogIndex = 0;
 
+        function triggerHeroExplosion() {
+            let px = -1, py = -1;
+            gameMap.forEach((v, k) => {
+                if (v.type === 'PLAYER') {
+                    let parts = k.split('_');
+                    px = parseInt(parts[0]); py = parseInt(parts[1]);
+                }
+            });
+            if (px === -1) return;
+
+            playSound('die'); screenShake = 40;
+            for (let ey = py - 2; ey <= py + 2; ey++) {
+                for (let ex = px - 2; ex <= px + 2; ex++) {
+                    if (ex > 0 && ex < cols - 1 && ey > 0 && ey < rows - 1) {
+                        let t = getTile(ex, ey);
+                        if (t && t.type !== 'WALL' && t.type !== 'EXIT' && t.type !== 'ATARI_FURNACE' && t.type !== 'PLAYER') {
+                            setTile(ex, ey, { type: 'SPACE', vx: ex, vy: ey, lastTick: tick, cooldown: 0 });
+                            spawnParticles(ex + 0.5, ey + 0.5, '#fa0', 8, 8);
+                            spawnParticles(ex + 0.5, ey + 0.5, '#f00', 4, 12);
+                        }
+                    }
+                }
+            }
+            playerQuote.text = "OVERLOAD BLAST!!!";
+            playerQuote.life = 80;
+        }
+
         window.onkeydown = function(e) { 
             let k = e.key;
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Spacebar', 'Enter'].includes(k)) {
@@ -502,9 +684,8 @@
 
             initAudio();
 
-            // Handle Respawning instantly with spacebar or 'r'
             if (gameState === 'GAME_OVER' && (k === ' ' || k === 'Spacebar' || k === 'Enter' || k.toLowerCase() === 'r')) {
-                initGame(true); // Restart level directly into playing state
+                initGame(true);
                 return;
             }
             
@@ -522,14 +703,27 @@
 
             if (gameState === 'DIALOG' && (k === ' ' || k === 'Spacebar' || k === 'Enter')) {
                 dialogIndex++;
+                
+                if (dialogIndex < dialogs.length && dialogs[dialogIndex].glitch) {
+                    glitchTimer = 80;
+                    screenShake = 60;
+                    playSound('die');
+                }
+
                 playSound('blip');
+                
                 if (dialogIndex >= dialogs.length) {
-                    // Check if it was the OUTRO level
                     if (currentLevel === levels.length) {
                         gameState = 'VICTORY';
                         playSound('win');
                         let status = document.getElementById("status");
                         status.innerText = "THE END. THANKS FOR PLAYING!";
+                        status.style.color = "#0f0";
+                    } else if (currentLevel === 4) {
+                        gameState = 'TRANSITION';
+                        playSound('win');
+                        let status = document.getElementById("status");
+                        status.innerText = "BONUS LEVEL: COAL MINE! PRESS SPACE";
                         status.style.color = "#0f0";
                     } else {
                         startLevelPlay();
@@ -539,11 +733,23 @@
             }
 
             if (gameState === 'PLAYING') {
-                keys.set(k, true); 
                 if (k === 'ArrowUp') { pendingDy = -1; pendingDx = 0; }
                 else if (k === 'ArrowDown') { pendingDy = 1; pendingDx = 0; }
                 else if (k === 'ArrowLeft') { pendingDx = -1; pendingDy = 0; facingLeft = true; }
                 else if (k === 'ArrowRight') { pendingDx = 1; pendingDy = 0; facingLeft = false; }
+                
+                if (!keys.get(k)) {
+                    keys.set(k, true);
+                    if (k === ' ' || k === 'Spacebar') {
+                        spaceMashCount++;
+                        spaceMashTimer = 40; 
+                        if (spaceMashCount >= 15) {
+                            triggerHeroExplosion();
+                            spaceMashCount = 0;
+                            heroIdleTimer = -100;
+                        }
+                    }
+                }
             }
         };
 
@@ -555,7 +761,6 @@
             gameState = 'PLAYING';
             playSound('win');
 
-            // Delete EX if it's Level 2 (In Level 3 they fight together)
             if (currentLevel === 2) {
                 gameMap.forEach(function(tile, key) {
                     if (tile.type === 'EX') {
@@ -595,13 +800,8 @@
             dialogs = config.dialogs;
             requiredScore = config.requiredScore;
 
-            if (currentLevel === 3) {
-                exRespawns = 3;
-                roboRespawns = 3;
-            } else {
-                exRespawns = 0;
-                roboRespawns = 0;
-            }
+            if (currentLevel === 3) { exRespawns = 3; roboRespawns = 3; } 
+            else { exRespawns = 0; roboRespawns = 0; }
             pendingRespawns = [];
 
             gameMap.clear();
@@ -612,28 +812,20 @@
             playerWalkAnim = 0; facingLeft = false;
             
             score = 0; exitOpen = false; tick = 0;
-            screenShake = 0;
+            screenShake = 0; glitchTimer = 0;
             
-            exStuckCounter = 0;
-            exWanderCounter = 0;
-            exLastPos = "-1_-1";
-            exFreedCreep = false;
-            exFollowTimer = 0;
-            exMustFollow = false;
+            exStuckCounter = 0; exWanderCounter = 0; exLastPos = "-1_-1";
+            exFreedCreep = false; exFollowTimer = 0; exMustFollow = false;
+
+            heroIdleTimer = 0; spaceMashCount = 0; spaceMashTimer = 0;
             
-            stalkerQuote = { text: "", life: 0 };
+            stalkerQuote = { text: "", life: 0, speaker: "" };
             playerQuote = { text: "", life: 0 };
             queuedPlayerResponse = "";
             
             document.getElementById("status").innerText = "";
-            
-            // Hide required score text in outro
-            if (currentLevel === levels.length) {
-                document.getElementById("required").innerText = "-";
-                document.getElementById("score").innerText = "-";
-            } else {
-                document.getElementById("required").innerText = requiredScore;
-            }
+
+            let totalMapCoal = 0;
             
             for (let y = 0; y < rows; y++) {
                 for (let x = 0; x < cols; x++) {
@@ -646,6 +838,8 @@
                     else if (char === 'O') t = 'BOULDER';
                     else if (char === '*') t = 'DIAMOND';
                     else if (char === 'B') t = 'BLACK_CRYSTAL';
+                    else if (char === 'W') { t = 'COAL'; totalMapCoal++; }
+                    else if (char === 'A') t = 'ATARI_FURNACE';
                     else if (char === 'E') t = 'EXIT';
                     else if (char === 'C') { t = 'CREEP'; dir = 1; }
                     else if (char === 'M') { t = 'C64_MONSTER'; dir = 1; }
@@ -656,58 +850,82 @@
                     setTile(x, y, { type: t, falling: false, lastTick: 0, vx: x, vy: y, dir: dir, cooldown: 0 });
                 }
             }
+
+            if (currentLevel === 5) {
+                document.getElementById("score-container").style.display = "none";
+                document.getElementById("coal-container").style.display = "flex";
+                playerCoal = 0;
+                totalDepositedCoal = 0;
+                atariEnergy = 1000;
+                requiredCoal = Math.max(1, totalMapCoal - 5);
+                document.getElementById("coal-req").innerText = requiredCoal;
+            } else {
+                document.getElementById("score-container").style.display = "block";
+                document.getElementById("coal-container").style.display = "none";
+            }
             
-            // Camera setup logic depends on if we respawned or are talking
-            if (isRespawn) {
+            if (currentLevel === levels.length || currentLevel === 4) {
+                document.getElementById("required").innerText = "-";
+                document.getElementById("score").innerText = "-";
+            } else {
+                document.getElementById("required").innerText = requiredScore;
+            }
+            
+            if (isRespawn || dialogs.length === 0) {
                 gameMap.forEach(function(v) {
-                    if (v.type === 'PLAYER') {
-                        pVisX = v.vx;
-                        pVisY = v.vy;
-                    }
+                    if (v.type === 'PLAYER') { pVisX = v.vx; pVisY = v.vy; }
                 });
             } else {
                 let initSpeaker = dialogs[0].speaker;
                 gameMap.forEach(function(v) {
-                    if (v.type === initSpeaker) {
-                        pVisX = v.vx;
-                        pVisY = v.vy;
-                    }
+                    if (v.type === initSpeaker) { pVisX = v.vx; pVisY = v.vy; }
                 });
             }
 
-            // Lock camera firmly
             let maxCamX = (cols * ts) - canvas.width;
             let maxCamY = (rows * ts) - canvas.height;
             camX = (pVisX * ts) - (canvas.width / 2);
             camY = (pVisY * ts) - (canvas.height / 2);
-            if (camX < 0) camX = 0;
-            if (camX > maxCamX) camX = maxCamX;
-            if (camY < 0) camY = 0;
-            if (camY > maxCamY) camY = maxCamY;
+            if (camX < 0) camX = 0; if (camX > maxCamX) camX = maxCamX;
+            if (camY < 0) camY = 0; if (camY > maxCamY) camY = maxCamY;
 
             if (isRespawn) {
                 startLevelPlay();
                 playerQuote.text = playerRespawnQuotes[Math.floor(Math.random() * playerRespawnQuotes.length)];
                 playerQuote.life = 100;
-            } else {
+            } else if (dialogs.length > 0) {
                 gameState = 'DIALOG';
                 dialogIndex = 0;
+            } else {
+                startLevelPlay();
             }
 
-            if (currentLevel !== levels.length) updateUI();
+            updateUI();
         }
 
         function updateUI() {
-            document.getElementById("score").innerText = score;
+            if (currentLevel === 5) {
+                document.getElementById("coal-inv").innerText = playerCoal;
+                document.getElementById("coal-dep").innerText = totalDepositedCoal;
+                let energyPercent = Math.max(0, Math.floor((atariEnergy / 1000) * 100));
+                document.getElementById("atari-energy").innerText = energyPercent + "%";
+                document.getElementById("atari-energy").style.color = energyPercent > 30 ? "#0f0" : "#f00";
+            } else {
+                document.getElementById("score").innerText = score;
+            }
         }
 
         function swapTiles(x1, y1, x2, y2) {
-            let t1 = getTile(x1, y1);
-            let t2 = getTile(x2, y2);
-            
+            let t1 = getTile(x1, y1); let t2 = getTile(x2, y2);
             t1.lastTick = tick;
             setTile(x2, y2, t1);
             setTile(x1, y1, { type: 'SPACE', vx: x1, vy: y1, cooldown: 0 });
+        }
+
+        function explodeGlitch(x, y) {
+            spawnParticles(x + 0.5, y + 0.5, '#0f0', 15, 5);
+            playSound('die'); 
+            setTile(x, y, {type: 'SPACE', vx: x, vy: y, cooldown: 0});
         }
 
         function explode(cx, cy) {
@@ -717,7 +935,7 @@
                 for (let ex = cx - 1; ex <= cx + 1; ex++) {
                     if (ex > 0 && ex < cols - 1 && ey > 0 && ey < rows - 1) {
                         let target = getTile(ex, ey);
-                        if (target) {
+                        if (target && target.type !== 'ATARI_FURNACE') {
                             if (target.type === 'PLAYER') {
                                 gameState = 'GAME_OVER';
                                 let status = document.getElementById("status");
@@ -725,21 +943,19 @@
                                 status.style.color = "#f00";
                             }
                             if (target.type === 'EX' || target.type === 'ROBOCOP') {
-                                if (target.type === 'EX' && currentLevel === 3 && exRespawns > 0) {
-                                    exRespawns--;
-                                    pendingRespawns.push({type: 'EX', delay: 20});
-                                } else if (target.type === 'ROBOCOP' && currentLevel === 3 && roboRespawns > 0) {
-                                    roboRespawns--;
-                                    pendingRespawns.push({type: 'ROBOCOP', delay: 20});
+                                if (currentLevel === 5) {
+                                    pendingRespawns.push({type: target.type, delay: 10});
+                                } else {
+                                    if (target.type === 'EX' && exRespawns > 0) { exRespawns--; pendingRespawns.push({type: 'EX', delay: 20}); } 
+                                    else if (target.type === 'ROBOCOP' && roboRespawns > 0) { roboRespawns--; pendingRespawns.push({type: 'ROBOCOP', delay: 20}); }
                                 }
-
                                 let killQuotes = target.type === 'ROBOCOP' ? ["Got him!", "Scrap metal!"] : ["See ya, Brad!", "Syntax Error!"];
                                 playerQuote.text = killQuotes[Math.floor(Math.random() * killQuotes.length)];
                                 playerQuote.life = 100;
                             }
-                            // Replace destroyed tile with diamond
-                            setTile(ex, ey, { type: 'DIAMOND', vx: ex, vy: ey, lastTick: tick, falling: false, cooldown: 0 });
-                            spawnParticles(ex + 0.5, ey + 0.5, '#0ff', 5, 6);
+                            let dropType = currentLevel === 5 ? 'COAL' : 'DIAMOND';
+                            setTile(ex, ey, { type: dropType, vx: ex, vy: ey, lastTick: tick, falling: false, cooldown: 0 });
+                            spawnParticles(ex + 0.5, ey + 0.5, currentLevel === 5 ? '#f80' : '#0ff', 5, 6);
                         }
                     }
                 }
@@ -768,7 +984,9 @@
             let tTile = getTile(tx, ty);
             if (!tTile) return false;
             
-            if (tTile.type === 'PLAYER' || tTile.type === 'CREEP' || tTile.type === 'C64_MONSTER' || tTile.type === 'EX' || tTile.type === 'ROBOCOP' || tTile.type === 'LASER') return false;
+            if (currentLevel === 5 && tTile.type === 'PLAYER') return false; 
+            
+            if (tTile.type === 'PLAYER' || tTile.type === 'CREEP' || tTile.type === 'C64_MONSTER' || tTile.type === 'EX' || tTile.type === 'ROBOCOP' || tTile.type === 'LASER' || tTile.type === 'ATARI_FURNACE' || tTile.type === 'COAL' || tTile.type === 'GLITCH') return false;
 
             if (tTile.type === 'SPACE' || tTile.type === 'DIRT' || tTile.type === 'BLACK_CRYSTAL') {
                 if (tTile.type === 'DIRT') {
@@ -780,15 +998,12 @@
                         for(let d of dirs) {
                             let adj = getTile(tx+d[0], ty+d[1]);
                             if (adj && (adj.type === 'CREEP' || adj.type === 'C64_MONSTER')) {
-                                exFreedCreep = true;
-                                break;
+                                exFreedCreep = true; break;
                             }
                         }
                     }
                 } else if (tTile.type === 'BLACK_CRYSTAL') {
-                    score = Math.max(0, score - 1);
-                    updateUI();
-                    playSound('thud');
+                    score = Math.max(0, score - 1); updateUI(); playSound('thud');
                     spawnParticles(tx + 0.5, ty + 0.5, '#a0a', 15, 6);
                     spawnText(tx, ty, "-1", "#f00");
                 }
@@ -808,10 +1023,8 @@
         }
 
         function getNextStalkerMove(gx, gy, pTile, creeps, forcingFollow, exTile) {
-            let goals = [];
-            let isRobo = (exTile.type === 'ROBOCOP');
+            let goals = []; let isRobo = (exTile.type === 'ROBOCOP');
 
-            // Find all black crystals to act as secondary targets
             gameMap.forEach((v, key) => {
                 if (v.type === 'BLACK_CRYSTAL') {
                     let parts = key.split('_');
@@ -821,7 +1034,6 @@
             
             if (pTile) {
                 let px = pTile.gx, py = pTile.gy;
-                
                 if (isRobo) {
                     let dist = Math.abs(gx - px) + Math.abs(gy - py);
                     if (dist < 4) {
@@ -829,10 +1041,8 @@
                         let dy = Math.sign(gy - py) || (Math.random()>0.5?1:-1);
                         goals.push({x: gx + dx*4, y: gy + dy*4, prio: 1});
                     } else {
-                        goals.push({x: px, y: py - 6, prio: 1});
-                        goals.push({x: px, y: py + 6, prio: 1});
-                        goals.push({x: px - 6, y: py, prio: 1});
-                        goals.push({x: px + 6, y: py, prio: 1});
+                        goals.push({x: px, y: py - 6, prio: 1}); goals.push({x: px, y: py + 6, prio: 1});
+                        goals.push({x: px - 6, y: py, prio: 1}); goals.push({x: px + 6, y: py, prio: 1});
                     }
                 } else {
                     if (forcingFollow) {
@@ -850,7 +1060,6 @@
                         if (above && above.type === 'SPACE') {
                             let left = getTile(px - 1, py - 1);
                             if (left && left.type === 'BOULDER') goals.push({x: px - 2, y: py - 1, prio: 1, pushDir: 1});
-                            
                             let right = getTile(px + 1, py - 1);
                             if (right && right.type === 'BOULDER') goals.push({x: px + 2, y: py - 1, prio: 1, pushDir: -1});
                         }
@@ -866,19 +1075,13 @@
             }
             
             let q = [{x: gx, y: gy, firstDir: null}];
-            let visited = new Set();
-            visited.add(gx + "_" + gy);
-            
-            let dirs = [[0,-1], [1,0], [0,1], [-1,0]];
-            let iters = 0;
+            let visited = new Set(); visited.add(gx + "_" + gy);
+            let dirs = [[0,-1], [1,0], [0,1], [-1,0]]; let iters = 0;
             
             while(q.length > 0 && iters < 500) {
-                iters++;
-                let cur = q.shift();
-                
+                iters++; let cur = q.shift();
                 for (let g of goals) {
                     if (g.prio === 1 && cur.x === g.x && cur.y === g.y) return cur.firstDir;
-                    // For crystals and creeps
                     if ((g.prio === 2 || g.prio === 1.5) && Math.abs(cur.x - g.x) + Math.abs(cur.y - g.y) === 1) return cur.firstDir; 
                 }
                 
@@ -886,7 +1089,6 @@
                     let dx = dirs[i][0]; let dy = dirs[i][1];
                     let nx = cur.x + dx; let ny = cur.y + dy;
                     let key = nx + "_" + ny;
-                    
                     let distToP = pTile ? Math.abs(nx - pTile.gx) + Math.abs(ny - pTile.gy) : 999;
                     
                     if (!visited.has(key)) {
@@ -898,20 +1100,13 @@
                                 let behind = getTile(nx + dx, ny);
                                 if (behind && behind.type === 'SPACE') canWalk = true;
                             }
-                            
                             if (isRobo) {
                                 let adjCreep = false;
-                                for(let c of creeps) {
-                                    if(Math.abs(nx - c.gx) + Math.abs(ny - c.gy) <= 2) adjCreep = true;
-                                }
+                                for(let c of creeps) { if(Math.abs(nx - c.gx) + Math.abs(ny - c.gy) <= 2) adjCreep = true; }
                                 if(adjCreep) canWalk = false;
                             }
-
                             if (!isRobo && distToP <= 1) canWalk = false; 
-                            
-                            if (canWalk) {
-                                q.push({ x: nx, y: ny, firstDir: cur.firstDir || {dx: dx, dy: dy} });
-                            }
+                            if (canWalk) q.push({ x: nx, y: ny, firstDir: cur.firstDir || {dx: dx, dy: dy} });
                         }
                     }
                 }
@@ -920,57 +1115,66 @@
         }
 
         function moveStalkers() {
-            let stalkerList = [];
-            let creeps = [];
-            let pTile = null;
+            let stalkerList = []; let creeps = []; let pTile = null;
             
             gameMap.forEach((v, key) => { 
-                let parts = key.split('_');
-                let gx = parseInt(parts[0]);
-                let gy = parseInt(parts[1]);
-
+                let parts = key.split('_'); let gx = parseInt(parts[0]); let gy = parseInt(parts[1]);
                 if(v.type === 'EX' || v.type === 'ROBOCOP') stalkerList.push({tile: v, gx: gx, gy: gy}); 
                 if(v.type === 'CREEP' || v.type === 'C64_MONSTER') creeps.push({tile: v, gx: gx, gy: gy});
-                if(v.type === 'PLAYER') {
-                    pTile = {tile: v, gx: gx, gy: gy};
-                }
+                if(v.type === 'PLAYER') pTile = {tile: v, gx: gx, gy: gy};
             });
             
             stalkerList.forEach(stalker => {
                 if (stalker.tile.lastTick === tick) return;
-                
                 let isRobo = stalker.tile.type === 'ROBOCOP';
+
+                let targetTile = pTile;
+                
+                if (currentLevel === 5) {
+                    if (isRobo) {
+                        let distToPlayer = pTile ? Math.abs(stalker.gx - pTile.gx) + Math.abs(stalker.gy - pTile.gy) : 0;
+                        if (distToPlayer > 12) {
+                            targetTile = pTile; // Stay on screen with player
+                        } else {
+                            let nearestGlitch = null; let minDist = 9999;
+                            gameMap.forEach((v,k) => {
+                                if(v.type === 'GLITCH') {
+                                    let parts = k.split('_');
+                                    let gx = parseInt(parts[0]), gy = parseInt(parts[1]);
+                                    let d = Math.abs(stalker.gx - gx) + Math.abs(stalker.gy - gy);
+                                    if(d < minDist) { minDist = d; nearestGlitch = {gx: gx, gy: gy}; }
+                                }
+                            });
+                            targetTile = nearestGlitch || pTile; 
+                        }
+                    } else {
+                        exWanderCounter = 5; 
+                    }
+                }
 
                 if (isRobo) {
                     if (stalker.tile.cooldown > 0) stalker.tile.cooldown--;
-                    
-                    if (stalker.tile.cooldown <= 0 && pTile) {
+                    if (stalker.tile.cooldown <= 0 && targetTile) {
                         let dx = 0, dy = 0;
-                        if (pTile.gx === stalker.gx) dy = Math.sign(pTile.gy - stalker.gy);
-                        else if (pTile.gy === stalker.gy) dx = Math.sign(pTile.gx - stalker.gx);
+                        if (targetTile.gx === stalker.gx) dy = Math.sign(targetTile.gy - stalker.gy);
+                        else if (targetTile.gy === stalker.gy) dx = Math.sign(targetTile.gx - stalker.gx);
                         
                         if (dx !== 0 || dy !== 0) {
-                            let clear = true;
-                            let tx = stalker.gx + dx, ty = stalker.gy + dy;
-                            let dist = 0;
-                            while(tx !== pTile.gx || ty !== pTile.gy) {
+                            let clear = true; let tx = stalker.gx + dx, ty = stalker.gy + dy; let dist = 0;
+                            while(tx !== targetTile.gx || ty !== targetTile.gy) {
                                 let t = getTile(tx, ty);
-                                if (!t || (t.type !== 'SPACE' && t.type !== 'DIRT' && t.type !== 'LASER' && t.type !== 'BLACK_CRYSTAL')) {
+                                if (!t || (t.type !== 'SPACE' && t.type !== 'DIRT' && t.type !== 'LASER' && t.type !== 'BLACK_CRYSTAL' && t.type !== 'GLITCH')) {
                                     clear = false; break;
                                 }
-                                tx += dx; ty += dy;
-                                dist++;
+                                tx += dx; ty += dy; dist++;
                             }
                             if (clear && dist > 0) {
-                                let sx = stalker.gx + dx, sy = stalker.gy + dy;
-                                let st = getTile(sx, sy);
-                                if (st && (st.type === 'SPACE' || st.type === 'DIRT' || st.type === 'BLACK_CRYSTAL')) {
-                                    if (st.type === 'BLACK_CRYSTAL') {
-                                        spawnParticles(sx + 0.5, sy + 0.5, '#a0a', 8, 4);
-                                    }
+                                let sx = stalker.gx + dx, sy = stalker.gy + dy; let st = getTile(sx, sy);
+                                if (st && (st.type === 'SPACE' || st.type === 'DIRT' || st.type === 'BLACK_CRYSTAL' || st.type === 'GLITCH')) {
+                                    if (st.type === 'BLACK_CRYSTAL') spawnParticles(sx + 0.5, sy + 0.5, '#a0a', 8, 4);
                                     playSound('laser');
                                     setTile(sx, sy, { type: 'LASER', dir: getDirFromDxDy(dx, dy), vx: sx, vy: sy, lastTick: tick, cooldown: 0 });
-                                    stalker.tile.cooldown = 40; 
+                                    stalker.tile.cooldown = (currentLevel === 5) ? 12 : 40; // High fire rate in L5
                                     stalker.tile.lastTick = tick;
                                     return; 
                                 }
@@ -979,63 +1183,40 @@
                     }
                 }
 
-                let distToP = pTile ? (Math.abs(stalker.gx - pTile.gx) + Math.abs(stalker.gy - pTile.gy)) : 0;
-                let isOffScreen = pTile && (Math.abs(stalker.gx - (camX/ts + 12)) > 14 || Math.abs(stalker.gy - (camY/ts + 9)) > 10);
+                let distToP = targetTile ? (Math.abs(stalker.gx - targetTile.gx) + Math.abs(stalker.gy - targetTile.gy)) : 0;
+                let isOffScreen = targetTile && (Math.abs(stalker.gx - (camX/ts + 12)) > 14 || Math.abs(stalker.gy - (camY/ts + 9)) > 10);
                 
                 if (!exMustFollow) exFollowTimer++;
-                
-                if (exFollowTimer > 61 || isOffScreen) {
-                    exMustFollow = true;
-                }
-                
+                if (exFollowTimer > 61 || isOffScreen) exMustFollow = true;
                 if (exMustFollow && distToP >= 2 && distToP <= 3 && !isOffScreen) {
-                    exMustFollow = false;
-                    exFollowTimer = 0;
+                    exMustFollow = false; exFollowTimer = 0;
                 }
 
                 let currentPos = stalker.gx + "_" + stalker.gy;
-                if (currentPos === exLastPos) {
-                    exStuckCounter++;
-                } else {
-                    exStuckCounter = 0;
-                    exLastPos = currentPos;
-                }
-
-                if (exStuckCounter > 35) { 
-                    exWanderCounter = 15;
-                    exStuckCounter = 0;
-                }
+                if (currentPos === exLastPos) exStuckCounter++;
+                else { exStuckCounter = 0; exLastPos = currentPos; }
+                if (exStuckCounter > 35) { exWanderCounter = 15; exStuckCounter = 0; }
 
                 let moved = false;
-
                 if (exWanderCounter > 0) {
                     exWanderCounter--;
-                    let dirs = [[0,-1], [1,0], [0,1], [-1,0]];
-                    dirs.sort(() => Math.random() - 0.5);
+                    let dirs = [[0,-1], [1,0], [0,1], [-1,0]]; dirs.sort(() => Math.random() - 0.5);
                     for (let d of dirs) {
                         let nx = stalker.gx + d[0]; let ny = stalker.gy + d[1];
-                        let localDist = pTile ? Math.abs(nx - pTile.gx) + Math.abs(ny - pTile.gy) : 999;
+                        let localDist = targetTile ? Math.abs(nx - targetTile.gx) + Math.abs(ny - targetTile.gy) : 999;
                         if (localDist > 1) {
                             if (isRobo) {
                                 let adjCreep = false;
-                                for(let c of creeps) {
-                                    if(Math.abs(nx - c.gx) + Math.abs(ny - c.gy) <= 2) adjCreep = true;
-                                }
+                                for(let c of creeps) { if(Math.abs(nx - c.gx) + Math.abs(ny - c.gy) <= 2) adjCreep = true; }
                                 if(adjCreep) continue;
                             }
-                            if (tryStalkerMove(stalker.tile, stalker.gx, stalker.gy, d[0], d[1])) {
-                                moved = true;
-                                break;
-                            }
+                            if (tryStalkerMove(stalker.tile, stalker.gx, stalker.gy, d[0], d[1])) { moved = true; break; }
                         }
                     }
                 } else {
-                    let move = getNextStalkerMove(stalker.gx, stalker.gy, pTile, creeps, exMustFollow, stalker.tile);
-                    if (move) {
-                        moved = tryStalkerMove(stalker.tile, stalker.gx, stalker.gy, move.dx, move.dy);
-                    } else {
-                        exWanderCounter = 3;
-                    }
+                    let move = getNextStalkerMove(stalker.gx, stalker.gy, targetTile, creeps, exMustFollow, stalker.tile);
+                    if (move) moved = tryStalkerMove(stalker.tile, stalker.gx, stalker.gy, move.dx, move.dy);
+                    else exWanderCounter = 3;
                 }
             });
         }
@@ -1044,8 +1225,40 @@
             if (gameState !== 'PLAYING') return;
             tick++;
 
+            if (spaceMashTimer > 0) {
+                spaceMashTimer--;
+                if (spaceMashTimer <= 0) spaceMashCount = 0;
+            }
+
             let px = -1, py = -1;
             let pTile = null;
+
+            if (currentLevel === 5) {
+                atariEnergy -= 3.0; 
+                if (atariEnergy <= 0) {
+                    atariEnergy = 0;
+                    gameState = 'GAME_OVER';
+                    playSound('die');
+                    screenShake = 30;
+                    let status = document.getElementById("status");
+                    status.innerText = "SYSTEM MELTDOWN! PRESS SPACE TO RESTART";
+                    status.style.color = "#f00";
+                }
+                updateUI();
+
+                let glitchCount = 0;
+                gameMap.forEach(v => { if (v.type === 'GLITCH') glitchCount++; });
+                let desiredGlitches = Math.floor((1000 - atariEnergy) / 40); 
+                if (glitchCount < desiredGlitches && Math.random() < 0.2) {
+                    let rx = Math.floor(Math.random() * cols);
+                    let ry = Math.floor(Math.random() * rows);
+                    let rt = getTile(rx, ry);
+                    if (rt && (rt.type === 'SPACE' || rt.type === 'DIRT')) {
+                        setTile(rx, ry, {type: 'GLITCH', vx: rx, vy: ry, lastTick: tick, cooldown: 0});
+                        spawnParticles(rx+0.5, ry+0.5, '#0f0', 8, 4);
+                    }
+                }
+            }
 
             gameMap.forEach(function(tile, key) {
                 if (tile.type === 'PLAYER') {
@@ -1056,14 +1269,12 @@
                 }
             });
 
-            // Process Respawns (Level 3)
             if (pendingRespawns.length > 0 && pTile) {
                 for (let i = pendingRespawns.length - 1; i >= 0; i--) {
                     let pr = pendingRespawns[i];
                     pr.delay--;
                     if (pr.delay <= 0) {
                         let spawned = false;
-                        // Search in expanding rings to spawn safely near player
                         for (let radius = 2; radius <= 7; radius++) {
                             let spots = [];
                             for (let dx = -radius; dx <= radius; dx++) {
@@ -1071,138 +1282,172 @@
                                     if (Math.abs(dx) === radius || Math.abs(dy) === radius) {
                                         let tx = pTile.gx + dx; let ty = pTile.gy + dy;
                                         let t = getTile(tx, ty);
-                                        if (t && (t.type === 'SPACE' || t.type === 'DIRT')) {
-                                            spots.push({x: tx, y: ty});
-                                        }
+                                        if (t && (t.type === 'SPACE' || t.type === 'DIRT')) spots.push({x: tx, y: ty});
                                     }
                                 }
                             }
                             if (spots.length > 0) {
                                 let spot = spots[Math.floor(Math.random() * spots.length)];
                                 setTile(spot.x, spot.y, {type: pr.type, vx: spot.x, vy: spot.y, lastTick: tick, cooldown: 0});
-                                spawnParticles(spot.x + 0.5, spot.y + 0.5, '#f0f', 30, 6);
-                                playSound('blip');
+                                spawnParticles(spot.x + 0.5, spot.y + 0.5, '#f0f', 30, 6); playSound('blip');
                                 
-                                stalkerQuote.text = pr.type === 'EX' 
-                                    ? ["This is my LAST life!", "Commodore never dies!", "Did you miss me?!"][exRespawns]
-                                    : ["CRITICAL BATTERY.", "OCP SPARE PARTS DEPLOYED.", "SYSTEM REBOOT SUCCESSFUL."][roboRespawns];
-                                stalkerQuote.life = 80;
-                                
-                                spawned = true;
-                                break;
+                                stalkerQuote.speaker = pr.type;
+                                if (currentLevel === 5) {
+                                    stalkerQuote.text = pr.type === 'EX' ? "AHH! My bits are scattering!" : "SYSTEM REBOOT SUCCESSFUL.";
+                                } else {
+                                    stalkerQuote.text = pr.type === 'EX' 
+                                        ? ["This is my LAST life!", "Commodore never dies!", "Did you miss me?!"][exRespawns]
+                                        : ["CRITICAL BATTERY.", "OCP SPARE PARTS DEPLOYED.", "SYSTEM REBOOT SUCCESSFUL."][roboRespawns];
+                                }
+                                stalkerQuote.life = 80; spawned = true; break;
                             }
                         }
-                        if (spawned) {
-                            pendingRespawns.splice(i, 1);
-                        }
+                        if (spawned) pendingRespawns.splice(i, 1);
                     }
                 }
             }
 
-
-            if (score >= requiredScore && !exitOpen && currentLevel < levels.length) {
-                exitOpen = true;
-                playSound('win');
-                screenShake = 10;
+            if (currentLevel < 5 && score >= requiredScore && !exitOpen && currentLevel < levels.length) {
+                exitOpen = true; playSound('win'); screenShake = 10;
             }
 
             let stalkerExists = false;
-            let stalkerType = null;
             gameMap.forEach(function(tile, key) {
-                if (tile.type === 'EX' || tile.type === 'ROBOCOP') {
-                    stalkerExists = true;
-                    stalkerType = tile.type; 
-                }
+                if (tile.type === 'EX' || tile.type === 'ROBOCOP') stalkerExists = true;
             });
 
-            if (stalkerExists && Math.random() < 0.012 && stalkerQuote.life <= 0 && playerQuote.life <= 0) {
-                let qList = (Math.random() > 0.5) ? roboQuotes : exQuotes;
-                stalkerQuote.text = qList[Math.floor(Math.random() * qList.length)];
-                stalkerQuote.life = 70;
-                if (Math.random() > 0.4) {
-                    queuedPlayerResponse = playerResponses[Math.floor(Math.random() * playerResponses.length)];
+            if (stalkerExists && Math.random() < 0.02 && stalkerQuote.life <= 0 && playerQuote.life <= 0) {
+                if (currentLevel === 5) {
+                    if (Math.random() > 0.5) {
+                        stalkerQuote.text = roboGlitchQuotes[Math.floor(Math.random() * roboGlitchQuotes.length)];
+                        stalkerQuote.speaker = 'ROBOCOP';
+                    } else {
+                        stalkerQuote.text = exPanicQuotes[Math.floor(Math.random() * exPanicQuotes.length)];
+                        stalkerQuote.speaker = 'EX';
+                    }
                 } else {
-                    queuedPlayerResponse = "";
+                    let isRobo = Math.random() > 0.5;
+                    stalkerQuote.text = isRobo 
+                        ? roboQuotes[Math.floor(Math.random() * roboQuotes.length)] 
+                        : exQuotes[Math.floor(Math.random() * exQuotes.length)];
+                    stalkerQuote.speaker = isRobo ? 'ROBOCOP' : 'EX';
+                    queuedPlayerResponse = Math.random() > 0.4 ? playerResponses[Math.floor(Math.random() * playerResponses.length)] : "";
                 }
+                stalkerQuote.life = 70;
             }
             
             if (stalkerQuote.life > 0) {
                 stalkerQuote.life -= 1;
                 if (stalkerQuote.life === 15 && queuedPlayerResponse !== "") {
-                    playerQuote.text = queuedPlayerResponse;
-                    playerQuote.life = 60;
-                    queuedPlayerResponse = "";
+                    playerQuote.text = queuedPlayerResponse; playerQuote.life = 60; queuedPlayerResponse = "";
                 }
             }
             if (playerQuote.life > 0) playerQuote.life -= 1;
 
             if (pTile) {
-                let dx = pendingDx; let dy = pendingDy;
-                pendingDx = 0; pendingDy = 0;
-
+                let dx = pendingDx; let dy = pendingDy; pendingDx = 0; pendingDy = 0;
                 if (dx === 0 && dy === 0) {
-                    if (keys.get('ArrowUp')) dy = -1;
-                    else if (keys.get('ArrowDown')) dy = 1;
+                    if (keys.get('ArrowUp')) dy = -1; else if (keys.get('ArrowDown')) dy = 1;
                     else if (keys.get('ArrowLeft')) { dx = -1; facingLeft = true; }
                     else if (keys.get('ArrowRight')) { dx = 1; facingLeft = false; }
                 }
-
                 if (dx !== 0 && dy !== 0) dy = 0;
 
                 let isSnapping = keys.get(' ') || keys.get('Spacebar');
 
+                if (dx === 0 && dy === 0 && !isSnapping) {
+                    heroIdleTimer++;
+                    if (heroIdleTimer > 50 && playerQuote.life <= 0) {
+                        playerQuote.text = "Stuck? Mash SPACEBAR 15x to trigger a blast!";
+                        playerQuote.life = 100;
+                        heroIdleTimer = -100;
+                    }
+                } else {
+                    heroIdleTimer = 0;
+                }
+
                 if (dx !== 0 || dy !== 0) {
-                    let tx = px + dx, ty = py + dy;
-                    let target = getTile(tx, ty);
+                    let tx = px + dx, ty = py + dy; let target = getTile(tx, ty);
                     
                     if (target) {
-                        if (target.type === 'CREEP' || target.type === 'C64_MONSTER' || target.type === 'LASER') {
+                        if (target.type === 'CREEP' || target.type === 'C64_MONSTER' || target.type === 'LASER' || target.type === 'GLITCH') {
+                            if (target.type === 'GLITCH') playSound('glitch');
                             explode(tx, ty);
                         } else if (target.type === 'EX' || target.type === 'ROBOCOP') {
-                            // Can't move into stalker directly
+                            // Can't walk through them
+                        } else if (target.type === 'ATARI_FURNACE') {
+                            if (playerCoal > 0) {
+                                totalDepositedCoal += playerCoal;
+                                atariEnergy = Math.min(1000, atariEnergy + playerCoal * 250);
+                                playerCoal = 0; playSound('powerup');
+                                spawnParticles(tx + 0.5, ty + 0.5, '#f80', 30, 8);
+                                spawnText(tx, ty, "FUELED!", "#0f0");
+                                updateUI();
+
+                                let killed = 0;
+                                gameMap.forEach((v, k) => {
+                                    if (v.type === 'GLITCH' && killed < 4 && Math.random() < 0.5) {
+                                        let parts = k.split('_');
+                                        setTile(parseInt(parts[0]), parseInt(parts[1]), {type:'SPACE', vx:parts[0], vy:parts[1], cooldown:0});
+                                        spawnParticles(parseInt(parts[0])+0.5, parseInt(parts[1])+0.5, '#0f0', 10, 5);
+                                        killed++;
+                                    }
+                                });
+
+                                if (totalDepositedCoal >= requiredCoal && !exitOpen) {
+                                    exitOpen = true; playSound('win'); screenShake = 20;
+                                    let status = document.getElementById("status");
+                                    status.innerText = "FURNACE STABLE! FIND EXIT!";
+                                    status.style.color = "#0f0";
+                                }
+                            } else { playSound('thud'); }
                         } else if (isSnapping) {
                             if (target.type === 'DIRT') {
-                                playSound('dig');
-                                spawnParticles(tx + 0.5, ty + 0.5, '#A0522D', 8, 4);
+                                playSound('dig'); spawnParticles(tx + 0.5, ty + 0.5, '#A0522D', 8, 4);
                                 setTile(tx, ty, { type: 'SPACE', vx: tx, vy: ty, lastTick: tick, cooldown: 0 });
                             } else if (target.type === 'DIAMOND') {
                                 score++; updateUI(); playSound('diamond');
                                 spawnParticles(tx + 0.5, ty + 0.5, '#00FFFF', 15, 6);
                                 spawnText(tx, ty, "+100", "#00FFFF");
                                 setTile(tx, ty, { type: 'SPACE', vx: tx, vy: ty, lastTick: tick, cooldown: 0 });
+                            } else if (target.type === 'COAL') {
+                                if (playerCoal < 3) {
+                                    playerCoal++; updateUI(); playSound('diamond');
+                                    spawnParticles(tx + 0.5, ty + 0.5, '#444', 15, 6);
+                                    spawnText(tx, ty, "COAL+1", "#888");
+                                    setTile(tx, ty, { type: 'SPACE', vx: tx, vy: ty, lastTick: tick, cooldown: 0 });
+                                } else { playSound('thud'); spawnText(tx, ty, "FULL!", "#f00"); }
                             } else if (target.type === 'BLACK_CRYSTAL') {
-                                playSound('thud');
-                                spawnParticles(tx + 0.5, ty + 0.5, '#a0a', 15, 6);
+                                playSound('thud'); spawnParticles(tx + 0.5, ty + 0.5, '#a0a', 15, 6);
                                 spawnText(tx, ty, "DENIED", "#a0a");
                                 setTile(tx, ty, { type: 'SPACE', vx: tx, vy: ty, lastTick: tick, cooldown: 0 });
                             }
                         } else {
                             if (target.type === 'SPACE' || target.type === 'DIRT' || target.type === 'BLACK_CRYSTAL') {
                                 if (target.type === 'DIRT') {
-                                    playSound('dig');
-                                    spawnParticles(tx + 0.5, ty + 0.5, '#A0522D', 8, 4);
+                                    playSound('dig'); spawnParticles(tx + 0.5, ty + 0.5, '#A0522D', 8, 4);
                                 } else if (target.type === 'BLACK_CRYSTAL') {
-                                    playSound('thud');
-                                    spawnParticles(tx + 0.5, ty + 0.5, '#a0a', 15, 6);
-                                    spawnText(tx, ty, "DENIED", "#a0a");
+                                    playSound('thud'); spawnParticles(tx + 0.5, ty + 0.5, '#a0a', 15, 6); spawnText(tx, ty, "DENIED", "#a0a");
                                 }
                                 swapTiles(px, py, tx, ty);
                             } else if (target.type === 'DIAMOND') {
                                 score++; updateUI(); playSound('diamond');
-                                spawnParticles(tx + 0.5, ty + 0.5, '#00FFFF', 15, 6);
-                                spawnText(tx, ty, "+100", "#00FFFF");
+                                spawnParticles(tx + 0.5, ty + 0.5, '#00FFFF', 15, 6); spawnText(tx, ty, "+100", "#00FFFF");
                                 swapTiles(px, py, tx, ty);
+                            } else if (target.type === 'COAL') {
+                                if (playerCoal < 3) {
+                                    playerCoal++; updateUI(); playSound('diamond');
+                                    spawnParticles(tx + 0.5, ty + 0.5, '#444', 15, 6); spawnText(tx, ty, "COAL+1", "#888");
+                                    swapTiles(px, py, tx, ty);
+                                } else { playSound('thud'); spawnText(tx, ty, "FULL!", "#f00"); }
                             } else if (target.type === 'BOULDER' && dy === 0) {
                                 let bx = tx + dx, behind = getTile(bx, ty);
                                 if (behind && behind.type === 'SPACE') {
-                                    swapTiles(tx, ty, bx, ty); 
-                                    swapTiles(px, py, tx, ty); 
+                                    swapTiles(tx, ty, bx, ty); swapTiles(px, py, tx, ty); 
                                 }
                             } else if (target.type === 'EXIT' && exitOpen) {
                                 swapTiles(px, py, tx, ty);
-                                // Normal level complete progression
-                                gameState = 'TRANSITION'; 
-                                playSound('win');
+                                gameState = 'TRANSITION'; playSound('win');
                                 let status = document.getElementById("status");
                                 status.innerText = "LEVEL COMPLETE! PRESS SPACE";
                                 status.style.color = "#0f0";
@@ -1219,76 +1464,99 @@
                     let t = getTile(x, y);
                     if (!t || t.lastTick === tick) continue;
 
+                    if (t.type === 'GLITCH') {
+                        if (t.cooldown > 0) { t.cooldown--; t.lastTick = tick; continue; }
+                        let dirs = [[0,-1], [1,0], [0,1], [-1,0]];
+                        if (pTile && Math.random() < 0.6) {
+                            dirs.sort((a,b) => {
+                                let da = Math.abs(x+a[0]-pTile.gx) + Math.abs(y+a[1]-pTile.gy);
+                                let db = Math.abs(x+b[0]-pTile.gx) + Math.abs(y+b[1]-pTile.gy);
+                                return da - db;
+                            });
+                        } else {
+                            dirs.sort(()=>Math.random()-0.5);
+                        }
+                        let moved = false;
+                        for(let d of dirs) {
+                            let nx = x + d[0], ny = y + d[1]; let nt = getTile(nx, ny);
+                            if (nt) {
+                                if (nt.type === 'PLAYER') {
+                                    playSound('glitch'); explode(nx, ny); moved = true; break;
+                                } else if (nt.type === 'SPACE' || nt.type === 'DIRT') {
+                                    t.cooldown = (nt.type === 'DIRT') ? 4 : 1;
+                                    if (nt.type === 'DIRT') spawnParticles(nx+0.5, ny+0.5, '#0f0', 5, 2);
+                                    swapTiles(x, y, nx, ny); moved = true; break;
+                                }
+                            }
+                        }
+                        if(!moved) t.lastTick = tick;
+                    }
+
                     if (t.type === 'LASER') {
                         let delta = getDirDelta(t.dir);
-                        let nx = x + delta.x; let ny = y + delta.y;
-                        let nTile = getTile(nx, ny);
+                        let nx = x + delta.x; let ny = y + delta.y; let nTile = getTile(nx, ny);
                         if (nTile) {
                             if (nTile.type === 'SPACE' || nTile.type === 'DIRT' || nTile.type === 'BLACK_CRYSTAL') {
                                 if (nTile.type === 'DIRT') spawnParticles(nx + 0.5, ny + 0.5, '#A0522D', 4, 2);
                                 if (nTile.type === 'BLACK_CRYSTAL') spawnParticles(nx + 0.5, ny + 0.5, '#a0a', 8, 4);
-                                setTile(nx, ny, t);
-                                setTile(x, y, {type: 'SPACE', vx: x, vy: y, cooldown: 0});
+                                setTile(nx, ny, t); setTile(x, y, {type: 'SPACE', vx: x, vy: y, cooldown: 0});
                                 t.lastTick = tick;
-                            } else if (nTile.type === 'PLAYER' || nTile.type === 'CREEP' || nTile.type === 'C64_MONSTER' || nTile.type === 'ROBOCOP' || nTile.type === 'EX') {
-                                explode(nx, ny);
+                            } else if (nTile.type === 'PLAYER' || nTile.type === 'EX' || nTile.type === 'ROBOCOP') {
+                                if (currentLevel === 5) {
+                                    setTile(x, y, {type: 'SPACE', vx: x, vy: y, cooldown: 0});
+                                    spawnParticles(nx + 0.5, ny + 0.5, '#00f', 10, 5);
+                                } else {
+                                    explode(nx, ny); setTile(x, y, {type: 'SPACE', vx: x, vy: y, cooldown: 0});
+                                }
+                            } else if (nTile.type === 'GLITCH') {
+                                explodeGlitch(nx, ny);
                                 setTile(x, y, {type: 'SPACE', vx: x, vy: y, cooldown: 0});
+                            } else if (nTile.type === 'CREEP' || nTile.type === 'C64_MONSTER') {
+                                explode(nx, ny); setTile(x, y, {type: 'SPACE', vx: x, vy: y, cooldown: 0});
                             } else if (nTile.type === 'LASER') {
                                 setTile(nx, ny, {type: 'SPACE', vx: nx, vy: ny, cooldown: 0});
                                 setTile(x, y, {type: 'SPACE', vx: x, vy: y, cooldown: 0});
                                 spawnParticles(nx + 0.5, ny + 0.5, '#f00', 10, 5);
                             } else { 
                                 setTile(x, y, {type: 'SPACE', vx: x, vy: y, cooldown: 0});
-                                spawnParticles(nx + 0.5, ny + 0.5, '#f00', 10, 5);
-                                playSound('thud');
+                                spawnParticles(nx + 0.5, ny + 0.5, '#f00', 10, 5); playSound('thud');
                             }
                         }
                     }
                     
                     if (t.type === 'CREEP' || t.type === 'C64_MONSTER') {
-                        let currentDir = t.dir;
-                        let rightDir = (currentDir + 1) % 4;
-                        let leftDir = (currentDir + 3) % 4;
-
-                        let rightDelta = getDirDelta(rightDir);
-                        let frontDelta = getDirDelta(currentDir);
-                        
+                        let currentDir = t.dir; let rightDir = (currentDir + 1) % 4; let leftDir = (currentDir + 3) % 4;
+                        let rightDelta = getDirDelta(rightDir); let frontDelta = getDirDelta(currentDir);
                         let rightTile = getTile(x + rightDelta.x, y + rightDelta.y);
                         let frontTile = getTile(x + frontDelta.x, y + frontDelta.y);
 
-                        // Note: Omitting EX from this logic makes EX immune to getting eaten by monsters (they just bounce off him like a wall)
                         if (rightTile && (rightTile.type === 'SPACE' || rightTile.type === 'PLAYER' || rightTile.type === 'ROBOCOP')) {
-                            if (rightTile.type === 'PLAYER' || rightTile.type === 'ROBOCOP') explode(x + rightDelta.x, y + rightDelta.y);
-                            else {
-                                t.dir = rightDir;
-                                swapTiles(x, y, x + rightDelta.x, y + rightDelta.y);
-                            }
+                            if (currentLevel !== 5 && (rightTile.type === 'PLAYER' || rightTile.type === 'ROBOCOP')) explode(x + rightDelta.x, y + rightDelta.y);
+                            else if (rightTile.type === 'SPACE') { t.dir = rightDir; swapTiles(x, y, x + rightDelta.x, y + rightDelta.y); }
                         } else if (frontTile && (frontTile.type === 'SPACE' || frontTile.type === 'PLAYER' || frontTile.type === 'ROBOCOP')) {
-                            if (frontTile.type === 'PLAYER' || frontTile.type === 'ROBOCOP') explode(x + frontDelta.x, y + frontDelta.y);
-                            else swapTiles(x, y, x + frontDelta.x, y + frontDelta.y);
+                            if (currentLevel !== 5 && (frontTile.type === 'PLAYER' || frontTile.type === 'ROBOCOP')) explode(x + frontDelta.x, y + frontDelta.y);
+                            else if (frontTile.type === 'SPACE') swapTiles(x, y, x + frontDelta.x, y + frontDelta.y);
                         } else {
-                            t.dir = leftDir;
-                            t.lastTick = tick; 
+                            t.dir = leftDir; t.lastTick = tick; 
                         }
                     }
                     
-                    if (t.type === 'BOULDER' || t.type === 'DIAMOND' || t.type === 'BLACK_CRYSTAL') {
+                    if (t.type === 'BOULDER' || t.type === 'DIAMOND' || t.type === 'BLACK_CRYSTAL' || t.type === 'COAL') {
                         let b = getTile(x, y + 1);
-                        
                         if (t.falling && b && b.type !== 'SPACE') {
                             if (b.type === 'PLAYER' || b.type === 'CREEP' || b.type === 'C64_MONSTER' || b.type === 'EX' || b.type === 'ROBOCOP') {
                                 explode(x, y + 1);
-                            } else if (t.type === 'BOULDER' || t.type === 'BLACK_CRYSTAL') {
-                                playSound('thud');
-                                screenShake = 5;
+                            } else if (b.type === 'GLITCH') {
+                                explodeGlitch(x, y + 1);
+                            } else if (t.type === 'BOULDER' || t.type === 'BLACK_CRYSTAL' || t.type === 'COAL') {
+                                playSound('thud'); screenShake = 5;
                                 spawnParticles(x + 0.5, y + 1, '#888', 6, 2);
                             }
                         }
 
                         if (b && b.type === 'SPACE') {
-                            t.falling = true;
-                            swapTiles(x, y, x, y + 1);
-                        } else if (b && (b.type === 'BOULDER' || b.type === 'DIAMOND' || b.type === 'BLACK_CRYSTAL' || b.type === 'WALL')) {
+                            t.falling = true; swapTiles(x, y, x, y + 1);
+                        } else if (b && (b.type === 'BOULDER' || b.type === 'DIAMOND' || b.type === 'BLACK_CRYSTAL' || b.type === 'COAL' || b.type === 'WALL')) {
                             let left = getTile(x - 1, y), bLeft = getTile(x - 1, y + 1);
                             let right = getTile(x + 1, y), bRight = getTile(x + 1, y + 1);
 
@@ -1296,624 +1564,369 @@
                                 t.falling = true; swapTiles(x, y, x - 1, y);
                             } else if (right && right.type === 'SPACE' && bRight && bRight.type === 'SPACE') {
                                 t.falling = true; swapTiles(x, y, x + 1, y);
-                            } else {
-                                t.falling = false;
-                            }
-                        } else {
-                            t.falling = false;
-                        }
+                            } else { t.falling = false; }
+                        } else { t.falling = false; }
                     }
                 }
             }
         }
 
-        // Draw bubble exclusively in absolute screen-space so it can't clip out of the window bounds
         function drawBubble(text, screenX, screenY) {
-            let words = text.split(' ');
-            let lines = [];
-            let line = '';
+            let words = text.split(' '); let lines = []; let line = '';
             ctx.font = 'bold 16px Courier New, Courier, monospace';
-            
             for(let n = 0; n < words.length; n++) {
-                let testLine = line + words[n] + ' ';
-                let metrics = ctx.measureText(testLine);
-                if (metrics.width > 200 && n > 0) {
-                    lines.push(line);
-                    line = words[n] + ' ';
-                } else {
-                    line = testLine;
-                }
+                let testLine = line + words[n] + ' '; let metrics = ctx.measureText(testLine);
+                if (metrics.width > 200 && n > 0) { lines.push(line); line = words[n] + ' '; } else { line = testLine; }
             }
             lines.push(line);
             
-            let bubbleHeight = lines.length * 20 + 30;
-            let bubbleWidth = 240;
-            
-            // Check if we should draw the bubble above or below the speaker so it stays on screen
+            let bubbleHeight = lines.length * 20 + 30; let bubbleWidth = 240;
             let drawBelow = screenY < (bubbleHeight + 40);
-            
-            // Clamp horizontal location to screen bounds safely
-            let minX = (bubbleWidth / 2) + 10;
-            let maxX = canvas.width - (bubbleWidth / 2) - 10;
+            let minX = (bubbleWidth / 2) + 10; let maxX = canvas.width - (bubbleWidth / 2) - 10;
             let bCX = Math.max(minX, Math.min(screenX, maxX));
-            
-            // Position vertical height based on direction
             let bCY = drawBelow ? screenY + bubbleHeight/2 + 20 : screenY - bubbleHeight/2 - 20;
-
-            // Give the bubble a slight floating effect
-            let bob = Math.sin(Date.now() / 150) * 4;
-            bCY += bob;
+            bCY += Math.sin(Date.now() / 150) * 4;
 
             ctx.save();
-            ctx.fillStyle = '#fff';
-            ctx.strokeStyle = '#f09';
-            ctx.lineWidth = 3;
+            ctx.fillStyle = '#fff'; ctx.strokeStyle = '#f09'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.roundRect(bCX - bubbleWidth/2, bCY - bubbleHeight/2, bubbleWidth, bubbleHeight, 15); ctx.fill(); ctx.stroke();
             
-            // Draw main bubble rectangle
             ctx.beginPath();
-            ctx.roundRect(bCX - bubbleWidth/2, bCY - bubbleHeight/2, bubbleWidth, bubbleHeight, 15);
+            if (drawBelow) { ctx.moveTo(bCX - 10, bCY - bubbleHeight/2); ctx.lineTo(bCX + 10, bCY - bubbleHeight/2); ctx.lineTo(screenX, screenY); } 
+            else { ctx.moveTo(bCX - 10, bCY + bubbleHeight/2); ctx.lineTo(bCX + 10, bCY + bubbleHeight/2); ctx.lineTo(screenX, screenY); }
             ctx.fill(); ctx.stroke();
             
-            // Draw tail pointing to speaker
-            ctx.beginPath();
-            if (drawBelow) {
-                ctx.moveTo(bCX - 10, bCY - bubbleHeight/2);
-                ctx.lineTo(bCX + 10, bCY - bubbleHeight/2);
-                ctx.lineTo(screenX, screenY);
-            } else {
-                ctx.moveTo(bCX - 10, bCY + bubbleHeight/2);
-                ctx.lineTo(bCX + 10, bCY + bubbleHeight/2);
-                ctx.lineTo(screenX, screenY);
-            }
-            ctx.fill(); ctx.stroke();
-            
-            // Erase the tail stroke line inside the bubble
-            ctx.fillStyle = '#fff';
-            ctx.beginPath();
-            if (drawBelow) {
-                ctx.moveTo(bCX - 9, bCY - bubbleHeight/2 - 2);
-                ctx.lineTo(bCX + 9, bCY - bubbleHeight/2 - 2);
-                ctx.lineTo(screenX, screenY + 2);
-            } else {
-                ctx.moveTo(bCX - 9, bCY + bubbleHeight/2 + 2);
-                ctx.lineTo(bCX + 9, bCY + bubbleHeight/2 + 2);
-                ctx.lineTo(screenX, screenY - 2);
-            }
+            ctx.fillStyle = '#fff'; ctx.beginPath();
+            if (drawBelow) { ctx.moveTo(bCX - 9, bCY - bubbleHeight/2 - 2); ctx.lineTo(bCX + 9, bCY - bubbleHeight/2 - 2); ctx.lineTo(screenX, screenY + 2); } 
+            else { ctx.moveTo(bCX - 9, bCY + bubbleHeight/2 + 2); ctx.lineTo(bCX + 9, bCY + bubbleHeight/2 + 2); ctx.lineTo(screenX, screenY - 2); }
             ctx.fill();
             
-            // Draw text lines
-            ctx.fillStyle = '#000';
-            ctx.textAlign = 'center';
-            let textStartY = bCY - bubbleHeight/2 + 25;
-            for(let i=0; i<lines.length; i++) {
-                ctx.fillText(lines[i].trim(), bCX, textStartY + (i*20));
-            }
+            ctx.fillStyle = '#000'; ctx.textAlign = 'center'; let textStartY = bCY - bubbleHeight/2 + 25;
+            for(let i=0; i<lines.length; i++) ctx.fillText(lines[i].trim(), bCX, textStartY + (i*20));
             
-            // Spacebar pulsating prompt
-            ctx.fillStyle = '#f09';
-            ctx.font = 'bold 12px Courier';
-            let pulse = Math.abs(Math.sin(Date.now() / 200));
-            ctx.globalAlpha = 0.5 + pulse * 0.5;
+            ctx.fillStyle = '#f09'; ctx.font = 'bold 12px Courier';
+            let pulse = Math.abs(Math.sin(Date.now() / 200)); ctx.globalAlpha = 0.5 + pulse * 0.5;
             ctx.fillText("SPACEBAR ->", bCX, bCY + bubbleHeight/2 - 8);
-            
             ctx.restore();
         }
 
         function render() {
             time += 0.05;
 
-            let targetPVisX = pVisX;
-            let targetPVisY = pVisY;
-
+            let targetPVisX = pVisX; let targetPVisY = pVisY;
             if (gameState === 'DIALOG') {
                 let currentSpeaker = dialogs[dialogIndex].speaker;
                 gameMap.forEach(function(tile) {
-                    if (tile.type === currentSpeaker) {
-                        targetPVisX = tile.vx;
-                        targetPVisY = tile.vy;
-                    }
+                    if (tile.type === currentSpeaker) { targetPVisX = tile.vx; targetPVisY = tile.vy; }
                 });
             } else {
                 gameMap.forEach(function(tile) {
-                    if (tile.type === 'PLAYER') {
-                        targetPVisX = tile.vx;
-                        targetPVisY = tile.vy;
-                    }
+                    if (tile.type === 'PLAYER') { targetPVisX = tile.vx; targetPVisY = tile.vy; }
                 });
             }
 
-            pVisX += (targetPVisX - pVisX) * 0.2;
-            pVisY += (targetPVisY - pVisY) * 0.2;
-
+            pVisX += (targetPVisX - pVisX) * 0.2; pVisY += (targetPVisY - pVisY) * 0.2;
             let targetCamX = (pVisX * ts) - (canvas.width / 2) + (ts / 2);
             let targetCamY = (pVisY * ts) - (canvas.height / 2) + (ts / 2);
-
-            let maxCamX = (cols * ts) - canvas.width;
-            let maxCamY = (rows * ts) - canvas.height;
+            let maxCamX = (cols * ts) - canvas.width; let maxCamY = (rows * ts) - canvas.height;
             
-            if (targetCamX < 0) targetCamX = 0;
-            if (targetCamX > maxCamX) targetCamX = maxCamX;
-            if (targetCamY < 0) targetCamY = 0;
-            if (targetCamY > maxCamY) targetCamY = maxCamY;
+            if (targetCamX < 0) targetCamX = 0; if (targetCamX > maxCamX) targetCamX = maxCamX;
+            if (targetCamY < 0) targetCamY = 0; if (targetCamY > maxCamY) targetCamY = maxCamY;
 
-            camX += (targetCamX - camX) * 0.1;
-            camY += (targetCamY - camY) * 0.1;
+            camX += (targetCamX - camX) * 0.1; camY += (targetCamY - camY) * 0.1;
 
             ctx.save();
             
             if (screenShake > 0) {
-                let sx = (Math.random() - 0.5) * screenShake;
-                let sy = (Math.random() - 0.5) * screenShake;
+                let sx = (Math.random() - 0.5) * screenShake; let sy = (Math.random() - 0.5) * screenShake;
                 ctx.translate(sx, sy);
-                screenShake *= 0.8;
-                if (screenShake < 0.5) screenShake = 0;
+                screenShake *= 0.8; if (screenShake < 0.5) screenShake = 0;
             }
 
-            ctx.fillStyle = '#0a0a10';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Shift camera world space
+            ctx.fillStyle = '#0a0a10'; ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.translate(-Math.floor(camX), -Math.floor(camY));
+
+            let drewAtari = false;
 
             for (let y = 0; y < rows; y++) {
                 for (let x = 0; x < cols; x++) {
                     let tile = getTile(x, y);
                     if (!tile || tile.type === 'SPACE') continue;
                     
-                    let drawX = tile.vx * ts;
-                    let drawY = tile.vy * ts;
-                    
+                    let drawX = tile.vx * ts; let drawY = tile.vy * ts;
                     if (drawX < camX - ts || drawX > camX + canvas.width + ts || 
                         drawY < camY - ts || drawY > camY + canvas.height + ts) {
-                        tile.vx += (x - tile.vx) * 0.45;
-                        tile.vy += (y - tile.vy) * 0.45;
-                        continue;
+                        tile.vx += (x - tile.vx) * 0.45; tile.vy += (y - tile.vy) * 0.45; continue;
                     }
 
-                    tile.vx += (x - tile.vx) * 0.45;
-                    tile.vy += (y - tile.vy) * 0.45;
-
-                    let cx = tile.vx * ts;
-                    let cy = tile.vy * ts;
+                    tile.vx += (x - tile.vx) * 0.45; tile.vy += (y - tile.vy) * 0.45;
+                    let cx = tile.vx * ts; let cy = tile.vy * ts;
 
                     if (tile.type === 'WALL') {
                         ctx.fillStyle = '#223'; ctx.fillRect(cx, cy, ts, ts);
-                        ctx.fillStyle = '#446';
-                        ctx.fillRect(cx+2, cy+2, ts-4, ts-4);
-                        ctx.fillStyle = '#668';
-                        ctx.fillRect(cx+4, cy+4, ts-8, ts-8);
+                        ctx.fillStyle = '#446'; ctx.fillRect(cx+2, cy+2, ts-4, ts-4);
+                        ctx.fillStyle = '#668'; ctx.fillRect(cx+4, cy+4, ts-8, ts-8);
                     } else if (tile.type === 'DIRT') {
                         ctx.fillStyle = '#3a2411'; ctx.fillRect(cx, cy, ts, ts);
-                        ctx.fillStyle = '#1e1005';
-                        ctx.fillRect(cx, cy, ts, 2); ctx.fillRect(cx, cy, 2, ts);
-                        ctx.fillStyle = '#5c3a1a';
-                        ctx.fillRect(cx + 6, cy + 6, 4, 4);
-                        ctx.fillRect(cx + 20, cy + 18, 4, 4);
-                        ctx.fillRect(cx + 10, cy + 24, 6, 4);
-                    } else if (tile.type === 'LASER') {
-                        ctx.fillStyle = '#f00';
-                        ctx.shadowBlur = 15; ctx.shadowColor = '#f00';
-                        if (tile.dir === 0 || tile.dir === 2) {
-                            ctx.fillRect(cx + 14, cy + 2, 4, 28);
-                            ctx.fillStyle = '#fff'; ctx.fillRect(cx + 15, cy + 4, 2, 24);
-                        } else {
-                            ctx.fillRect(cx + 2, cy + 14, 28, 4);
-                            ctx.fillStyle = '#fff'; ctx.fillRect(cx + 4, cy + 15, 24, 2);
+                        ctx.fillStyle = '#1e1005'; ctx.fillRect(cx, cy, ts, 2); ctx.fillRect(cx, cy, 2, ts);
+                        ctx.fillStyle = '#5c3a1a'; ctx.fillRect(cx + 6, cy + 6, 4, 4); ctx.fillRect(cx + 20, cy + 18, 4, 4); ctx.fillRect(cx + 10, cy + 24, 6, 4);
+                    } else if (tile.type === 'ATARI_FURNACE') {
+                        if (!drewAtari && x >= 3 && y >= 31) {
+                            drewAtari = true;
                         }
+                    } else if (tile.type === 'GLITCH') {
+                        let c1 = Math.random() > 0.5 ? '#0f0' : '#0ff';
+                        let c2 = Math.random() > 0.5 ? '#f0f' : '#f00';
+                        ctx.fillStyle = c1;
+                        ctx.fillRect(cx + Math.random()*4, cy + Math.random()*8, ts-8, ts-10);
+                        ctx.fillStyle = c2;
+                        ctx.fillRect(cx + 4 + Math.random()*4, cy + 4 + Math.random()*8, ts-12, ts-12);
+                        ctx.fillStyle = '#fff'; ctx.font = 'bold 20px Courier';
+                        ctx.fillText(["?","$","&","!","*"][Math.floor(Math.random()*5)], cx + 8, cy + 22);
+                    } else if (tile.type === 'LASER') {
+                        ctx.fillStyle = '#f00'; ctx.shadowBlur = 15; ctx.shadowColor = '#f00';
+                        if (tile.dir === 0 || tile.dir === 2) { ctx.fillRect(cx + 14, cy + 2, 4, 28); ctx.fillStyle = '#fff'; ctx.fillRect(cx + 15, cy + 4, 2, 24); } 
+                        else { ctx.fillRect(cx + 2, cy + 14, 28, 4); ctx.fillStyle = '#fff'; ctx.fillRect(cx + 4, cy + 15, 24, 2); }
                         ctx.shadowBlur = 0;
                     } else if (tile.type === 'BOULDER') {
                         let rot = tile.vx * Math.PI;
-                        ctx.save();
-                        ctx.translate(cx + 16, cy + 16);
-                        ctx.rotate(rot);
-                        
+                        ctx.save(); ctx.translate(cx + 16, cy + 16); ctx.rotate(rot);
                         ctx.shadowBlur = 10; ctx.shadowColor = '#000';
-                        ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); 
-                        ctx.fillStyle = '#555'; ctx.fill();
-                        
-                        ctx.shadowBlur = 0;
-                        ctx.beginPath(); ctx.arc(-4, -4, 6, 0, Math.PI * 2); 
-                        ctx.fillStyle = '#888'; ctx.fill();
-                        ctx.beginPath(); ctx.arc(4, 4, 3, 0, Math.PI * 2); 
-                        ctx.fillStyle = '#444'; ctx.fill();
-                        ctx.restore();
+                        ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fillStyle = '#555'; ctx.fill();
+                        ctx.shadowBlur = 0; ctx.beginPath(); ctx.arc(-4, -4, 6, 0, Math.PI * 2); ctx.fillStyle = '#888'; ctx.fill();
+                        ctx.beginPath(); ctx.arc(4, 4, 3, 0, Math.PI * 2); ctx.fillStyle = '#444'; ctx.fill(); ctx.restore();
                     } else if (tile.type === 'DIAMOND') {
                         let floatY = Math.sin(time + x + y) * 3;
-                        ctx.save();
-                        ctx.translate(cx + 16, cy + 16 + floatY);
-                        
-                        ctx.shadowBlur = 15; ctx.shadowColor = '#0ff';
-                        ctx.fillStyle = '#0ff';
-                        ctx.beginPath();
-                        ctx.moveTo(0, -12); ctx.lineTo(12, 0);
-                        ctx.lineTo(0, 12); ctx.lineTo(-12, 0);
-                        ctx.fill();
-                        
-                        ctx.fillStyle = '#fff';
-                        ctx.beginPath();
-                        ctx.moveTo(0, -6); ctx.lineTo(4, 0);
-                        ctx.lineTo(0, 6); ctx.lineTo(-4, 0);
-                        ctx.fill();
+                        ctx.save(); ctx.translate(cx + 16, cy + 16 + floatY);
+                        ctx.shadowBlur = 15; ctx.shadowColor = '#0ff'; ctx.fillStyle = '#0ff';
+                        ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(12, 0); ctx.lineTo(0, 12); ctx.lineTo(-12, 0); ctx.fill();
+                        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(4, 0); ctx.lineTo(0, 6); ctx.lineTo(-4, 0); ctx.fill();
                         ctx.restore();
                     } else if (tile.type === 'BLACK_CRYSTAL') {
                         let floatY = Math.sin(time + x + y) * 3;
-                        ctx.save();
-                        ctx.translate(cx + 16, cy + 16 + floatY);
-                        
-                        ctx.shadowBlur = 15; ctx.shadowColor = '#505';
-                        ctx.fillStyle = '#202';
-                        ctx.beginPath();
-                        ctx.moveTo(0, -12); ctx.lineTo(12, 0);
-                        ctx.lineTo(0, 12); ctx.lineTo(-12, 0);
-                        ctx.fill();
-                        
-                        ctx.fillStyle = '#626';
-                        ctx.beginPath();
-                        ctx.moveTo(0, -6); ctx.lineTo(4, 0);
-                        ctx.lineTo(0, 6); ctx.lineTo(-4, 0);
-                        ctx.fill();
+                        ctx.save(); ctx.translate(cx + 16, cy + 16 + floatY);
+                        ctx.shadowBlur = 15; ctx.shadowColor = '#505'; ctx.fillStyle = '#202';
+                        ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(12, 0); ctx.lineTo(0, 12); ctx.lineTo(-12, 0); ctx.fill();
+                        ctx.fillStyle = '#626'; ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(4, 0); ctx.lineTo(0, 6); ctx.lineTo(-4, 0); ctx.fill();
+                        ctx.restore();
+                    } else if (tile.type === 'COAL') {
+                        let floatY = Math.sin(time + x + y) * 2;
+                        ctx.save(); ctx.translate(cx + 16, cy + 16 + floatY);
+                        ctx.shadowBlur = 10; ctx.shadowColor = '#f40'; ctx.fillStyle = '#222';
+                        ctx.beginPath(); ctx.moveTo(-10, -6); ctx.lineTo(-2, -10); ctx.lineTo(8, -8); ctx.lineTo(12, 2); ctx.lineTo(6, 10); ctx.lineTo(-8, 8); ctx.fill();
+                        ctx.fillStyle = '#444'; ctx.beginPath(); ctx.moveTo(-6, -4); ctx.lineTo(0, -6); ctx.lineTo(4, -2); ctx.lineTo(6, 4); ctx.lineTo(-2, 6); ctx.lineTo(-6, 2); ctx.fill();
+                        ctx.strokeStyle = '#f40'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-4, -2); ctx.lineTo(0, 2); ctx.lineTo(4, 0); ctx.stroke();
                         ctx.restore();
                     } else if (tile.type === 'EXIT') {
-                        ctx.fillStyle = exitOpen ? '#f0f' : '#222';
-                        ctx.fillRect(cx + 2, cy + 2, 28, 28);
+                        ctx.fillStyle = exitOpen ? '#f0f' : '#222'; ctx.fillRect(cx + 2, cy + 2, 28, 28);
                         if (exitOpen) {
-                            ctx.shadowBlur = 20; ctx.shadowColor = '#f0f';
-                            ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Courier';
-                            ctx.textAlign = 'center';
-                            let s = 1 + Math.sin(time * 5) * 0.1;
-                            ctx.save();
-                            ctx.translate(cx + 16, cy + 18);
-                            ctx.scale(s, s);
-                            ctx.fillText("EXIT", 0, 0);
-                            ctx.restore();
+                            ctx.shadowBlur = 20; ctx.shadowColor = '#f0f'; ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Courier';
+                            ctx.textAlign = 'center'; let s = 1 + Math.sin(time * 5) * 0.1;
+                            ctx.save(); ctx.translate(cx + 16, cy + 18); ctx.scale(s, s); ctx.fillText("EXIT", 0, 0); ctx.restore();
                         }
                     } else if (tile.type === 'C64_MONSTER') {
-                        ctx.save();
-                        ctx.translate(cx + 16, cy + 16);
-                        
-                        let wobble = Math.sin(time * 4 + x) * 0.15;
-                        ctx.rotate(wobble);
-                        let legShift = Math.sin(time * 8) * 3;
-
-                        ctx.fillStyle = '#dcb'; 
-                        ctx.fillRect(-12, -12, 24, 20);
-                        
-                        ctx.fillStyle = '#333';
-                        ctx.fillRect(-8, -8, 16, 12);
-                        
-                        ctx.fillStyle = '#f00';
-                        ctx.fillRect(-6, -6, 3, 2);
-                        ctx.fillRect(3, -6, 3, 2);
-                        
-                        ctx.strokeStyle = '#fff';
-                        ctx.lineWidth = 1.5;
-                        ctx.beginPath();
-                        ctx.arc(-2, 0, 2.5, Math.PI * 0.25, Math.PI * 1.75, false);
-                        ctx.stroke();
-                        
-                        ctx.fillStyle = '#f00'; ctx.fillRect(0, -1.5, 3, 1);
-                        ctx.fillStyle = '#00f'; ctx.fillRect(0, 0.5, 3, 1);
-                        
-                        ctx.fillStyle = '#555';
-                        ctx.fillRect(-8 + legShift, 8, 4, 6);
-                        ctx.fillRect(4 - legShift, 8, 4, 6);
-
+                        ctx.save(); ctx.translate(cx + 16, cy + 16);
+                        let wobble = Math.sin(time * 4 + x) * 0.15; ctx.rotate(wobble); let legShift = Math.sin(time * 8) * 3;
+                        ctx.fillStyle = '#dcb'; ctx.fillRect(-12, -12, 24, 20); ctx.fillStyle = '#333'; ctx.fillRect(-8, -8, 16, 12);
+                        ctx.fillStyle = '#f00'; ctx.fillRect(-6, -6, 3, 2); ctx.fillRect(3, -6, 3, 2);
+                        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(-2, 0, 2.5, Math.PI * 0.25, Math.PI * 1.75, false); ctx.stroke();
+                        ctx.fillStyle = '#f00'; ctx.fillRect(0, -1.5, 3, 1); ctx.fillStyle = '#00f'; ctx.fillRect(0, 0.5, 3, 1);
+                        ctx.fillStyle = '#555'; ctx.fillRect(-8 + legShift, 8, 4, 6); ctx.fillRect(4 - legShift, 8, 4, 6);
                         ctx.restore();
                     } else if (tile.type === 'CREEP') {
-                        ctx.save();
-                        ctx.translate(cx + 16, cy + 16);
-                        
-                        let wobble = Math.sin(time * 4 + x) * 0.15;
-                        ctx.rotate(wobble);
-                        
-                        let isFlashing = Math.sin(time * 3 + y) > 0.8;
-
-                        ctx.fillStyle = '#6e4420'; 
-                        ctx.fillRect(-10, -6, 20, 20);
-                        
-                        ctx.fillStyle = '#4a2c13';
-                        ctx.fillRect(-10, -8, 20, 4);
-
+                        ctx.save(); ctx.translate(cx + 16, cy + 16);
+                        let wobble = Math.sin(time * 4 + x) * 0.15; ctx.rotate(wobble); let isFlashing = Math.sin(time * 3 + y) > 0.8;
+                        ctx.fillStyle = '#6e4420'; ctx.fillRect(-10, -6, 20, 20); ctx.fillStyle = '#4a2c13'; ctx.fillRect(-10, -8, 20, 4);
                         if (isFlashing) {
-                            ctx.fillStyle = '#111'; ctx.fillRect(-4, 0, 8, 12);
-                            ctx.fillStyle = '#f09'; 
-                            ctx.shadowBlur = 10; ctx.shadowColor = '#f09';
-                            ctx.beginPath(); ctx.arc(-2, 4, 2, 0, Math.PI * 2); ctx.fill();
-                            ctx.beginPath(); ctx.arc(2, 4, 2, 0, Math.PI * 2); ctx.fill();
-                            ctx.beginPath(); ctx.moveTo(-4, 5); ctx.lineTo(4, 5); ctx.lineTo(0, 9); ctx.fill();
-                            ctx.shadowBlur = 0;
-                            ctx.fillStyle = '#6e4420';
-                            ctx.fillRect(-16, -2, 6, 16);
-                            ctx.fillRect(10, -2, 6, 16);
-                        } else {
-                            ctx.fillStyle = '#3a2411'; ctx.fillRect(-1, 0, 2, 14);
-                        }
-
-                        ctx.fillStyle = '#fca'; ctx.fillRect(-6, -16, 12, 10);
-                        
-                        ctx.fillStyle = '#000'; ctx.fillRect(-8, -14, 16, 4);
-                        ctx.fillStyle = '#fff'; ctx.fillRect(-6, -14, 2, 1); ctx.fillRect(2, -14, 2, 1);
-
-                        ctx.fillStyle = '#333';
-                        let browY = isFlashing ? -18 : -16;
-                        ctx.fillRect(-7, browY, 5, 2); ctx.fillRect(2, browY, 5, 2);
-
+                            ctx.fillStyle = '#111'; ctx.fillRect(-4, 0, 8, 12); ctx.fillStyle = '#f09'; ctx.shadowBlur = 10; ctx.shadowColor = '#f09';
+                            ctx.beginPath(); ctx.arc(-2, 4, 2, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(2, 4, 2, 0, Math.PI * 2); ctx.fill();
+                            ctx.beginPath(); ctx.moveTo(-4, 5); ctx.lineTo(4, 5); ctx.lineTo(0, 9); ctx.fill(); ctx.shadowBlur = 0;
+                            ctx.fillStyle = '#6e4420'; ctx.fillRect(-16, -2, 6, 16); ctx.fillRect(10, -2, 6, 16);
+                        } else { ctx.fillStyle = '#3a2411'; ctx.fillRect(-1, 0, 2, 14); }
+                        ctx.fillStyle = '#fca'; ctx.fillRect(-6, -16, 12, 10); ctx.fillStyle = '#000'; ctx.fillRect(-8, -14, 16, 4);
+                        ctx.fillStyle = '#fff'; ctx.fillRect(-6, -14, 2, 1); ctx.fillRect(2, -14, 2, 1); ctx.fillStyle = '#333';
+                        let browY = isFlashing ? -18 : -16; ctx.fillRect(-7, browY, 5, 2); ctx.fillRect(2, browY, 5, 2);
                         ctx.fillStyle = '#000'; ctx.fillRect(-4, -8, 8, 1);
                         if (isFlashing) { ctx.fillStyle = '#f00'; ctx.fillRect(-2, -7, 4, 2); }
-
-                        let legShift = Math.sin(time * 8) * 3;
-                        ctx.fillStyle = '#111';
-                        ctx.fillRect(-6 + legShift, 14, 4, 4);
-                        ctx.fillRect(2 - legShift, 14, 4, 4);
-
+                        let legShift = Math.sin(time * 8) * 3; ctx.fillStyle = '#111'; ctx.fillRect(-6 + legShift, 14, 4, 4); ctx.fillRect(2 - legShift, 14, 4, 4);
                         ctx.restore();
                     } else if (tile.type === 'EX') {
-                        ctx.save();
-                        ctx.translate(cx + 16, cy + 16);
-                        
-                        let isMoving = Math.abs(tile.vx - x) > 0.05 || Math.abs(tile.vy - y) > 0.05;
-                        let anim = isMoving ? time * 10 : 0;
-                        
-                        ctx.rotate(Math.sin(anim) * 0.1);
-                        
-                        ctx.fillStyle = '#00f'; 
-                        let lx = isMoving ? Math.sin(anim) * 4 : 2;
-                        ctx.fillRect(-4, 6, 3, 8 + lx);
-                        ctx.fillRect(1, 6, 3, 8 - lx);
-                        
-                        ctx.fillStyle = '#ddd'; 
-                        ctx.fillRect(-6, -4, 12, 12);
-                        
-                        ctx.fillStyle = '#fca';
-                        ctx.fillRect(-10, -4, 4, 8);
-                        ctx.fillRect(6, -4, 4, 8);
-                        
-                        ctx.strokeStyle = '#fd0'; ctx.lineWidth = 2;
-                        ctx.beginPath(); ctx.arc(0, -2, 4, 0, Math.PI); ctx.stroke();
+                        ctx.save(); ctx.translate(cx + 16, cy + 16);
+                        let isMoving = Math.abs(tile.vx - x) > 0.05 || Math.abs(tile.vy - y) > 0.05; let anim = isMoving ? time * 10 : 0;
+                        ctx.rotate(Math.sin(anim) * 0.1); ctx.fillStyle = '#00f'; let lx = isMoving ? Math.sin(anim) * 4 : 2;
+                        ctx.fillRect(-4, 6, 3, 8 + lx); ctx.fillRect(1, 6, 3, 8 - lx); ctx.fillStyle = '#ddd'; ctx.fillRect(-6, -4, 12, 12);
+                        ctx.fillStyle = '#fca'; ctx.fillRect(-10, -4, 4, 8); ctx.fillRect(6, -4, 4, 8);
+                        ctx.strokeStyle = '#fd0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, -2, 4, 0, Math.PI); ctx.stroke();
+                        ctx.fillStyle = '#fca'; ctx.fillRect(-5, -14, 10, 10); ctx.fillStyle = '#f00'; ctx.fillRect(-6, -16, 12, 4); ctx.fillRect(6, -16, 4, 3); 
+                        ctx.fillStyle = '#000'; ctx.fillRect(-3, -11, 2, 1); ctx.fillRect(1, -11, 2, 1);
+                        ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-4, -13); ctx.lineTo(-1, -11); ctx.stroke(); ctx.moveTo(4, -13); ctx.lineTo(1, -11); ctx.stroke();
+                        ctx.fillStyle = '#000'; ctx.fillRect(-2, -7, 4, 1);
 
-                        ctx.fillStyle = '#fca';
-                        ctx.fillRect(-5, -14, 10, 10);
-                        
-                        ctx.fillStyle = '#f00';
-                        ctx.fillRect(-6, -16, 12, 4);
-                        ctx.fillRect(6, -16, 4, 3); 
-                        
-                        ctx.fillStyle = '#000';
-                        ctx.fillRect(-3, -11, 2, 1);
-                        ctx.fillRect(1, -11, 2, 1);
-                        
-                        ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.moveTo(-4, -13); ctx.lineTo(-1, -11); ctx.stroke();
-                        ctx.moveTo(4, -13); ctx.lineTo(1, -11); ctx.stroke();
-                        
-                        ctx.fillStyle = '#000';
-                        ctx.fillRect(-2, -7, 4, 1);
-
-                        if (stalkerQuote.life > 0 && gameState === 'PLAYING') {
-                            ctx.save();
-                            ctx.translate(0, -32 - Math.sin(time*5)*2);
-                            ctx.font = 'bold 11px Courier';
+                        if (stalkerQuote.life > 0 && gameState === 'PLAYING' && stalkerQuote.speaker === 'EX') {
+                            ctx.save(); ctx.translate(0, -32 - Math.sin(time*5)*2); ctx.font = 'bold 11px Courier';
                             let mWidth = ctx.measureText(stalkerQuote.text).width + 16;
-                            
-                            ctx.fillStyle = '#fff';
-                            ctx.strokeStyle = '#f00';
-                            ctx.lineWidth = 2;
-                            ctx.beginPath();
-                            ctx.roundRect(-mWidth/2, -14, mWidth, 18, 5);
-                            ctx.fill(); ctx.stroke();
-                            
-                            ctx.beginPath();
-                            ctx.moveTo(-5, 4); ctx.lineTo(5, 4); ctx.lineTo(0, 10);
-                            ctx.fill(); ctx.stroke();
-                            
-                            ctx.fillStyle = '#000';
-                            ctx.textAlign = 'center';
-                            ctx.fillText(stalkerQuote.text, 0, 0);
-                            ctx.restore();
+                            ctx.fillStyle = '#fff'; ctx.strokeStyle = '#f00'; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(-mWidth/2, -14, mWidth, 18, 5); ctx.fill(); ctx.stroke();
+                            ctx.beginPath(); ctx.moveTo(-5, 4); ctx.lineTo(5, 4); ctx.lineTo(0, 10); ctx.fill(); ctx.stroke();
+                            ctx.fillStyle = '#000'; ctx.textAlign = 'center'; ctx.fillText(stalkerQuote.text, 0, 0); ctx.restore();
                         }
-
                         ctx.restore();
                     } else if (tile.type === 'ROBOCOP') {
-                        ctx.save();
-                        ctx.translate(cx + 16, cy + 16);
-                        
-                        let isMoving = Math.abs(tile.vx - x) > 0.05 || Math.abs(tile.vy - y) > 0.05;
-                        let anim = isMoving ? time * 10 : 0;
-                        
-                        ctx.rotate(Math.sin(anim) * 0.05);
-                        
-                        ctx.fillStyle = '#444'; 
-                        let lx = isMoving ? Math.sin(anim) * 4 : 2;
-                        ctx.fillRect(-5, 6, 4, 8 + lx);
-                        ctx.fillRect(1, 6, 4, 8 - lx);
-                        
-                        ctx.fillStyle = '#99a'; 
-                        ctx.fillRect(-7, -4, 14, 12);
-                        ctx.fillStyle = '#ccd'; 
-                        ctx.fillRect(-5, -4, 10, 10);
-                        
-                        ctx.fillStyle = '#444';
-                        ctx.fillRect(-11, -4, 4, 9);
-                        ctx.fillRect(7, -4, 4, 9);
-                        
-                        ctx.fillStyle = '#ccd';
-                        ctx.fillRect(-12, -5, 6, 4);
-                        ctx.fillRect(6, -5, 6, 4);
+                        ctx.save(); ctx.translate(cx + 16, cy + 16);
+                        let isMoving = Math.abs(tile.vx - x) > 0.05 || Math.abs(tile.vy - y) > 0.05; let anim = isMoving ? time * 10 : 0;
+                        ctx.rotate(Math.sin(anim) * 0.05); ctx.fillStyle = '#444'; let lx = isMoving ? Math.sin(anim) * 4 : 2;
+                        ctx.fillRect(-5, 6, 4, 8 + lx); ctx.fillRect(1, 6, 4, 8 - lx); ctx.fillStyle = '#99a'; ctx.fillRect(-7, -4, 14, 12);
+                        ctx.fillStyle = '#ccd'; ctx.fillRect(-5, -4, 10, 10); ctx.fillStyle = '#444'; ctx.fillRect(-11, -4, 4, 9); ctx.fillRect(7, -4, 4, 9);
+                        ctx.fillStyle = '#ccd'; ctx.fillRect(-12, -5, 6, 4); ctx.fillRect(6, -5, 6, 4); ctx.fillStyle = '#99a'; ctx.fillRect(-5, -14, 10, 10);
+                        ctx.fillStyle = '#ccd'; ctx.fillRect(-4, -14, 8, 3); ctx.fillStyle = '#111'; ctx.fillRect(-6, -11, 12, 4);
+                        let scanX = Math.sin(time * 4) * 4; ctx.fillStyle = '#f00'; ctx.shadowBlur = 5; ctx.shadowColor = '#f00'; ctx.fillRect(-2 + scanX, -10, 4, 2); ctx.shadowBlur = 0;
+                        ctx.fillStyle = '#fca'; ctx.fillRect(-3, -7, 6, 3); ctx.fillStyle = '#000'; ctx.fillRect(-1, -6, 2, 1);
 
-                        ctx.fillStyle = '#99a';
-                        ctx.fillRect(-5, -14, 10, 10);
-                        ctx.fillStyle = '#ccd';
-                        ctx.fillRect(-4, -14, 8, 3);
-                        
-                        ctx.fillStyle = '#111';
-                        ctx.fillRect(-6, -11, 12, 4);
-                        
-                        let scanX = Math.sin(time * 4) * 4;
-                        ctx.fillStyle = '#f00';
-                        ctx.shadowBlur = 5; ctx.shadowColor = '#f00';
-                        ctx.fillRect(-2 + scanX, -10, 4, 2);
-                        ctx.shadowBlur = 0;
-                        
-                        ctx.fillStyle = '#fca';
-                        ctx.fillRect(-3, -7, 6, 3);
-                        ctx.fillStyle = '#000';
-                        ctx.fillRect(-1, -6, 2, 1);
-
-                        if (stalkerQuote.life > 0 && gameState === 'PLAYING') {
-                            ctx.save();
-                            ctx.translate(0, -32 - Math.sin(time*5)*2);
-                            ctx.font = 'bold 11px Courier';
-                            let mWidth = ctx.measureText(stalkerQuote.text).width + 16;
-                            
-                            ctx.fillStyle = '#fff';
-                            ctx.strokeStyle = '#555';
-                            ctx.lineWidth = 2;
-                            ctx.beginPath();
-                            ctx.roundRect(-mWidth/2, -14, mWidth, 18, 5);
-                            ctx.fill(); ctx.stroke();
-                            
-                            ctx.beginPath();
-                            ctx.moveTo(-5, 4); ctx.lineTo(5, 4); ctx.lineTo(0, 10);
-                            ctx.fill(); ctx.stroke();
-                            
-                            ctx.fillStyle = '#000';
-                            ctx.textAlign = 'center';
-                            ctx.fillText(stalkerQuote.text, 0, 0);
-                            ctx.restore();
+                        if (stalkerQuote.life > 0 && gameState === 'PLAYING' && stalkerQuote.speaker === 'ROBOCOP') {
+                            ctx.save(); ctx.translate(0, -32 - Math.sin(time*5)*2); ctx.font = 'bold 11px Courier'; let mWidth = ctx.measureText(stalkerQuote.text).width + 16;
+                            ctx.fillStyle = '#fff'; ctx.strokeStyle = '#555'; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(-mWidth/2, -14, mWidth, 18, 5); ctx.fill(); ctx.stroke();
+                            ctx.beginPath(); ctx.moveTo(-5, 4); ctx.lineTo(5, 4); ctx.lineTo(0, 10); ctx.fill(); ctx.stroke();
+                            ctx.fillStyle = '#000'; ctx.textAlign = 'center'; ctx.fillText(stalkerQuote.text, 0, 0); ctx.restore();
                         }
-
                         ctx.restore();
                     } else if (tile.type === 'PLAYER') {
-                        ctx.save();
-                        ctx.translate(cx + 16, cy + 16);
-                        
+                        ctx.save(); ctx.translate(cx + 16, cy + 16);
                         let isMoving = Math.abs(tile.vx - x) > 0.05 || Math.abs(tile.vy - y) > 0.05;
-                        if (isMoving) playerWalkAnim += 0.4;
-                        else playerWalkAnim += Math.sin(playerWalkAnim) * -0.2;
-
+                        if (isMoving) playerWalkAnim += 0.4; else playerWalkAnim += Math.sin(playerWalkAnim) * -0.2;
                         if (facingLeft) ctx.scale(-1, 1);
+                        if (gameState === 'GAME_OVER') ctx.rotate(Math.PI / 2);
+                        else if (isMoving) ctx.rotate(Math.sin(playerWalkAnim) * 0.1);
+                        else ctx.scale(1 + Math.sin(time * 3) * 0.02, 1 - Math.sin(time * 3) * 0.02);
 
-                        if (gameState === 'GAME_OVER') {
-                            ctx.rotate(Math.PI / 2);
-                        } else if (isMoving) {
-                            ctx.rotate(Math.sin(playerWalkAnim) * 0.1);
-                        } else {
-                            ctx.scale(1 + Math.sin(time * 3) * 0.02, 1 - Math.sin(time * 3) * 0.02);
-                        }
-
-                        let l1x = isMoving ? Math.sin(playerWalkAnim) * 4 : 0;
-                        let l1y = isMoving ? Math.max(0, -Math.sin(playerWalkAnim)) * 4 : 0;
-                        let l2x = isMoving ? Math.sin(playerWalkAnim + Math.PI) * 4 : 0;
-                        let l2y = isMoving ? Math.max(0, -Math.sin(playerWalkAnim + Math.PI)) * 4 : 0;
-
+                        let l1x = isMoving ? Math.sin(playerWalkAnim) * 4 : 0; let l1y = isMoving ? Math.max(0, -Math.sin(playerWalkAnim)) * 4 : 0;
+                        let l2x = isMoving ? Math.sin(playerWalkAnim + Math.PI) * 4 : 0; let l2y = isMoving ? Math.max(0, -Math.sin(playerWalkAnim + Math.PI)) * 4 : 0;
                         let bodyBounce = isMoving ? Math.abs(Math.sin(playerWalkAnim)) * 1.5 : 0;
 
-                        ctx.fillStyle = '#fca'; ctx.fillRect(-2 + l2x, 6, 4, 6 - l2y);
-                        ctx.fillStyle = '#fff'; ctx.fillRect(-3 + l2x, 12 - l2y, 5, 4);
-
-                        ctx.fillStyle = '#fca'; ctx.fillRect(-2 + l1x, 6, 4, 6 - l1y);
-                        ctx.fillStyle = '#fff'; ctx.fillRect(-3 + l1x, 12 - l1y, 5, 4);
-
+                        ctx.fillStyle = '#fca'; ctx.fillRect(-2 + l2x, 6, 4, 6 - l2y); ctx.fillStyle = '#fff'; ctx.fillRect(-3 + l2x, 12 - l2y, 5, 4);
+                        ctx.fillStyle = '#fca'; ctx.fillRect(-2 + l1x, 6, 4, 6 - l1y); ctx.fillStyle = '#fff'; ctx.fillRect(-3 + l1x, 12 - l1y, 5, 4);
                         ctx.translate(0, -bodyBounce);
-
                         ctx.fillStyle = '#fca'; ctx.fillRect(-4, 0, 3, 6 + l2x);
-
-                        ctx.fillStyle = '#f09'; 
-                        let sway = isMoving ? Math.sin(playerWalkAnim)*4 : Math.sin(time*2)*2;
-                        ctx.fillRect(-12 - sway, -4, 6, 14);
-
-                        ctx.fillStyle = '#0ff'; ctx.fillRect(-4, -2, 8, 5); 
-                        ctx.fillStyle = '#fca'; ctx.fillRect(-3, 3, 6, 2);  
-                        ctx.fillStyle = '#90f'; ctx.fillRect(-4, 5, 8, 3);  
-
-                        ctx.fillStyle = '#fca'; ctx.fillRect(-5, -10, 10, 9);
-                        
-                        ctx.fillStyle = '#f09';
-                        ctx.fillRect(-6, -12, 12, 4);
-                        ctx.fillRect(-6, -8, 3, 6);
-
+                        ctx.fillStyle = '#f09'; let sway = isMoving ? Math.sin(playerWalkAnim)*4 : Math.sin(time*2)*2; ctx.fillRect(-12 - sway, -4, 6, 14);
+                        ctx.fillStyle = '#0ff'; ctx.fillRect(-4, -2, 8, 5); ctx.fillStyle = '#fca'; ctx.fillRect(-3, 3, 6, 2); ctx.fillStyle = '#90f'; ctx.fillRect(-4, 5, 8, 3);  
+                        ctx.fillStyle = '#fca'; ctx.fillRect(-5, -10, 10, 9); ctx.fillStyle = '#f09'; ctx.fillRect(-6, -12, 12, 4); ctx.fillRect(-6, -8, 3, 6);
                         ctx.fillStyle = '#0ff'; ctx.fillRect(-6, -10, 12, 2);
 
-                        if (gameState === 'GAME_OVER') {
-                            ctx.fillStyle = '#000';
-                            ctx.fillRect(-1, -7, 2, 2); ctx.fillRect(3, -7, 2, 2);
-                        } else {
-                            if (Math.sin(time * 5) > 0.95) {
-                                ctx.fillStyle = '#000'; 
-                                ctx.fillRect(-1, -6, 2, 1); ctx.fillRect(3, -6, 2, 1);
-                            } else {
-                                ctx.fillStyle = '#fff'; 
-                                ctx.fillRect(-2, -7, 3, 3); ctx.fillRect(2, -7, 3, 3);
-                                ctx.fillStyle = '#0cf'; 
-                                ctx.fillRect(-1, -7, 2, 2); ctx.fillRect(3, -7, 2, 2);
-                            }
+                        if (gameState === 'GAME_OVER') { ctx.fillStyle = '#000'; ctx.fillRect(-1, -7, 2, 2); ctx.fillRect(3, -7, 2, 2); } 
+                        else {
+                            if (Math.sin(time * 5) > 0.95) { ctx.fillStyle = '#000'; ctx.fillRect(-1, -6, 2, 1); ctx.fillRect(3, -6, 2, 1); } 
+                            else { ctx.fillStyle = '#fff'; ctx.fillRect(-2, -7, 3, 3); ctx.fillRect(2, -7, 3, 3); ctx.fillStyle = '#0cf'; ctx.fillRect(-1, -7, 2, 2); ctx.fillRect(3, -7, 2, 2); }
                         }
 
                         if (playerQuote.life > 0 && gameState === 'PLAYING') {
-                            ctx.save();
-                            if (facingLeft) ctx.scale(-1, 1); 
-                            ctx.translate(0, -32 - Math.sin(time*5)*2);
-                            ctx.font = 'bold 11px Courier';
+                            ctx.save(); if (facingLeft) ctx.scale(-1, 1); ctx.translate(0, -32 - Math.sin(time*5)*2); ctx.font = 'bold 11px Courier';
                             let mWidth = ctx.measureText(playerQuote.text).width + 16;
-                            
-                            ctx.fillStyle = '#fff';
-                            ctx.strokeStyle = '#0ff';
-                            ctx.lineWidth = 2;
-                            ctx.beginPath();
-                            ctx.roundRect(-mWidth/2, -14, mWidth, 18, 5);
-                            ctx.fill(); ctx.stroke();
-                            
-                            ctx.beginPath();
-                            ctx.moveTo(-5, 4); ctx.lineTo(5, 4); ctx.lineTo(0, 10);
-                            ctx.fill(); ctx.stroke();
-                            
-                            ctx.fillStyle = '#000';
-                            ctx.textAlign = 'center';
-                            ctx.fillText(playerQuote.text, 0, 0);
-                            ctx.restore();
+                            ctx.fillStyle = '#fff'; ctx.strokeStyle = '#0ff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(-mWidth/2, -14, mWidth, 18, 5); ctx.fill(); ctx.stroke();
+                            ctx.beginPath(); ctx.moveTo(-5, 4); ctx.lineTo(5, 4); ctx.lineTo(0, 10); ctx.fill(); ctx.stroke();
+                            ctx.fillStyle = '#000'; ctx.textAlign = 'center'; ctx.fillText(playerQuote.text, 0, 0); ctx.restore();
                         }
 
                         ctx.fillStyle = '#fca'; ctx.fillRect(1, 0, 3, 6 + l1x);
-
                         ctx.restore();
                     }
                 }
             }
 
+            // Draw Huge Atari Computer Overlay
+            if (drewAtari) {
+                ctx.save();
+                ctx.translate(3 * ts, 31 * ts); 
+                
+                let w = 12 * ts; // WIDER
+                let h = 7 * ts;
+                
+                // Outer shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.beginPath(); ctx.roundRect(4, 4, w, h, 12); ctx.fill();
+
+                // Base chassis (beige)
+                ctx.fillStyle = '#d0ccb5';
+                ctx.beginPath(); ctx.roundRect(0, 0, w, h, 12); ctx.fill();
+                
+                // Top bevel/indent
+                ctx.fillStyle = '#c0bc95';
+                ctx.beginPath(); ctx.roundRect(5, 5, w-10, h-10, 8); ctx.fill();
+
+                // Aluminum strip
+                ctx.fillStyle = '#b5b6b5';
+                ctx.fillRect(ts, ts * 1.5, w - ts * 2, ts * 0.8);
+                
+                // BIG BLACK FRAME OVER KEYBOARD (Covering all keys)
+                ctx.fillStyle = '#111'; // Very dark
+                ctx.beginPath(); 
+                ctx.roundRect(ts * 0.5, ts*2.6, w - ts*1.0, ts*3.8, 8); 
+                ctx.fill();
+
+                // Gloss effect to make it look like a sleek cover
+                ctx.fillStyle = 'rgba(255,255,255,0.04)';
+                ctx.beginPath(); 
+                ctx.roundRect(ts * 0.5, ts*2.6, w - ts*1.0, ts*1.5, 8); 
+                ctx.fill();
+                
+                // Cartridge / Furnace slot
+                let slotW = ts * 5; 
+                let slotH = ts * 1.2;
+                let slotX = w/2 - slotW/2;
+                let slotY = ts * 0.2;
+                ctx.fillStyle = '#0a0a0a';
+                ctx.beginPath(); ctx.roundRect(slotX, slotY, slotW, slotH, 4); ctx.fill();
+                
+                // Vents inside slot
+                ctx.fillStyle = '#222';
+                for(let v=0; v<12; v++) ctx.fillRect(slotX + 10 + v*12, slotY + 4, 6, slotH - 8);
+
+                // Furnace Glow
+                let flicker = Math.random() > 0.5 ? '#f40' : '#ff0';
+                ctx.fillStyle = flicker; 
+                ctx.globalAlpha = 0.8 + Math.random()*0.2;
+                ctx.shadowBlur = 30; ctx.shadowColor = '#f00';
+                ctx.fillRect(slotX + 10, slotY + 10, slotW - 20, slotH - 20);
+                ctx.globalAlpha = 1.0; ctx.shadowBlur = 0;
+                
+                // Labels
+                ctx.fillStyle = '#222'; ctx.font = 'bold 24px Courier';
+                ctx.fillText("ATARI 800XL", ts + 10, ts*2.1);
+                
+                ctx.fillStyle = '#f00'; ctx.font = 'bold 16px Courier';
+                ctx.fillText("⬇ FEED COAL ⬇", w/2 - 65, ts*1.35);
+
+                ctx.restore();
+            }
+
             ctx.restore();
+
+            if (glitchTimer > 0) {
+                ctx.save();
+                ctx.globalCompositeOperation = 'difference';
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                for(let i=0; i<20; i++) {
+                    ctx.fillStyle = `rgb(${Math.random()*255},0,${Math.random()*255})`;
+                    ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, Math.random()*300, Math.random()*50);
+                }
+                ctx.restore();
+            }
 
             // Particles
             ctx.save();
             ctx.translate(-Math.floor(camX), -Math.floor(camY));
             ctx.globalCompositeOperation = 'screen';
             particles.forEach(function(p) {
-                p.x += p.vx; p.y += p.vy;
-                p.vy += 0.1; 
-                p.life -= p.decay;
-                
-                if (p.life <= 0) {
-                    particles.delete(p);
-                } else {
-                    ctx.globalAlpha = p.life;
-                    ctx.fillStyle = p.color;
-                    ctx.fillRect(p.x * ts, p.y * ts, p.size, p.size);
-                }
+                p.x += p.vx; p.y += p.vy; p.vy += 0.1; p.life -= p.decay;
+                if (p.life <= 0) particles.delete(p);
+                else { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x * ts, p.y * ts, p.size, p.size); }
             });
-            ctx.globalAlpha = 1.0;
-            ctx.globalCompositeOperation = 'source-over';
+            ctx.globalAlpha = 1.0; ctx.globalCompositeOperation = 'source-over';
 
             floatingTexts.forEach(function(ft) {
-                ft.y -= 0.05;
-                ft.life -= 0.02;
-                if (ft.life <= 0) {
-                    floatingTexts.delete(ft);
-                } else {
-                    ctx.globalAlpha = ft.life;
-                    ctx.fillStyle = ft.color;
-                    ctx.font = 'bold 16px Courier';
-                    ctx.shadowBlur = 5; ctx.shadowColor = ft.color;
-                    ctx.fillText(ft.text, ft.x * ts, ft.y * ts);
+                ft.y -= 0.05; ft.life -= 0.02;
+                if (ft.life <= 0) floatingTexts.delete(ft);
+                else {
+                    ctx.globalAlpha = ft.life; ctx.fillStyle = ft.color; ctx.font = 'bold 16px Courier';
+                    ctx.shadowBlur = 5; ctx.shadowColor = ft.color; ctx.fillText(ft.text, ft.x * ts, ft.y * ts);
                 }
             });
             ctx.globalAlpha = 1.0; ctx.shadowBlur = 0;
@@ -1921,21 +1934,12 @@
 
             // Draw Dialog UI
             if (gameState === 'DIALOG') {
-                ctx.fillStyle = 'rgba(0,0,0,0.6)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                let current = dialogs[dialogIndex];
-                let speakerWorldX = 0, speakerWorldY = 0;
-
+                ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                let current = dialogs[dialogIndex]; let speakerWorldX = 0, speakerWorldY = 0;
                 gameMap.forEach(v => {
-                    if (v.type === current.speaker) {
-                        speakerWorldX = (v.vx * ts) + ts/2;
-                        speakerWorldY = (v.vy * ts) - 10;
-                    }
+                    if (v.type === current.speaker) { speakerWorldX = (v.vx * ts) + ts/2; speakerWorldY = (v.vy * ts) - 10; }
                 });
-
-                let screenX = speakerWorldX - Math.floor(camX);
-                let screenY = speakerWorldY - Math.floor(camY);
+                let screenX = speakerWorldX - Math.floor(camX); let screenY = speakerWorldY - Math.floor(camY);
                 drawBubble(current.text, screenX, screenY);
             }
         }
@@ -1945,12 +1949,11 @@
         
         function gameLoop(timestamp) {
             if (!lastLogicTime) lastLogicTime = timestamp;
-            
             while (timestamp - lastLogicTime >= TICK_RATE) {
                 update();
                 lastLogicTime += TICK_RATE;
             }
-            
+            if (glitchTimer > 0) glitchTimer--;
             render();
             requestAnimationFrame(gameLoop);
         }
